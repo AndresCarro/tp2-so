@@ -134,3 +134,6 @@ Temporary Items
 
 # Debug files
 *.elf
+
+# User-specific compile script
+compile.sh
