@@ -3,6 +3,7 @@
 #include <moduleLoader.h>
 #include <naiveConsole.h>
 #include <idtLoader.h>
+#include <memory_manager.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -51,6 +52,7 @@ int main()
 {	
 	ncClear();
 	load_idt();
+	memory_manager_start((void *) ((uint64_t) endOfKernel), (uint64_t)sampleCodeModuleAddress - endOfKernel);
 	loadUserland(sampleCodeModuleAddress, (uint64_t*) 0x900000);
 	ncPrint("[Finished]");
 	return 0;
