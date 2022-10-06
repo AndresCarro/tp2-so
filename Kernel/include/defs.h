@@ -28,7 +28,14 @@
 #define RFLAGS_POS (REG_AMOUNT+2)
 #define RSP_POS (REG_AMOUNT+3)
 
+/* Status */
+#define READY 0
+#define BLOCKED 1
+#define TERMINATED 2
+
 /* Data Types */
 typedef unsigned int pid_t;
+typedef unsigned int priority_t;
+typedef unsigned int status_t;
 
 #endif
