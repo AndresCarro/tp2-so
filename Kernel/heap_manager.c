@@ -1,4 +1,5 @@
 #include <memory_manager.h>
+#include <naiveConsole.h>
 
 uint64_t total_memory;
 uint64_t used_memory;
@@ -44,8 +45,8 @@ void * memory_manager_alloc(uint64_t size){
         current->leftover -= size;
         used_memory += size;
         return (void *) current + sizeof(Memory_Node_CDT);
-    }else{
-        Memory_Node_ADT new_node = current + current->size + sizeof(Memory_Node_CDT);
+    } else {
+        Memory_Node_ADT new_node = (void *)((uint64_t) current + current->size + sizeof(Memory_Node_CDT));
         new_node->size = size;
         new_node->leftover = current->leftover - size - sizeof(Memory_Node_CDT);
         current->leftover = 0;
