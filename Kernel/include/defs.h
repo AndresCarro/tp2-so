@@ -28,4 +28,7 @@
 #define RFLAGS_POS (REG_AMOUNT+2)
 #define RSP_POS (REG_AMOUNT+3)
 
+/* Data Types */
+typedef unsigned int pid_t;
+
 #endif
