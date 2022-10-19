@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <defs.h>
 
-#define TOT_PRIORITIES 10
+#define TOT_PRIORITIES 9
 #define DEF_PRIORITY 5
 
 
