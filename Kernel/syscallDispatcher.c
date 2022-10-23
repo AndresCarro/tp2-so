@@ -43,6 +43,8 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
         case 9:
             sys_get_mem_state(rdi);
             break;
+        case 10:
+            return sys_create(int argc, char * argv[]);
     }
     return 0;
 }
@@ -109,4 +111,8 @@ static void sys_free(uint64_t ptr) {
 
 static void sys_get_mem_state(uint64_t memory_state) {
     memory_manager_get_state((Memory_State *)memory_state);
+}
+
+static pid_t sys_create(int (*program1)(),int argc, char * argv[]){
+    return create_process(program1,argc,argv);
 }

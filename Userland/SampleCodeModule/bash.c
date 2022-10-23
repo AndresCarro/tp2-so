@@ -75,7 +75,7 @@ pm commandLine(char* buffer){
     }else if( (strcmp(buffer,"inforeg")) == 0){
         putChar('\n');
         return (pm)inforeg;
-    }else{//el comando ingresado no existe.
+    }else if( (strcmp(buffer,"create"))){//el comando ingresado no existe.
         unknownCommand();
     }
     return NULL;

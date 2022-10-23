@@ -72,6 +72,15 @@ sys_copymem:
     pop rbp
     ret
 
+sys_create:
+    push rbp
+    mov rbp,rsp
+    mov rax,10
+    int 0x80
+    mov rsp,rbp
+    pop rbp
+    ret
+
 inv_opcode:
     ud2
     ret

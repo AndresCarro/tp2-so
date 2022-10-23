@@ -14,8 +14,6 @@ pid_t create_process(uint64_t rip, int argc, char * argv[]) {
     new_process->process.priority = DEF_PRIORITY;
     new_process->process.quantums_left = priorities[DEF_PRIORITY];
     new_process->process.status = READY;
-
-    // TODO ASSEMBLER TO CREATE STACK
     // ; Creamos el stack "simulado" del proceso para que el scheduler
     // ; pueda tomar el programa y correrlo
     // ; rdi -> entryPoint, el puntero a funcion rip
@@ -28,18 +26,18 @@ pid_t create_process(uint64_t rip, int argc, char * argv[]) {
     if(rsp == NULL) {
         return -1;
     }
-
+    new_process->process.stack_base = rsp;
     // Este new_rsp es el que tengo que guardar en el pcb porque es donde esta
     // guardado el stack que me va a permitir correr nuevamente el proceso en el contexto
     // en el que me encontraba.
     uint64_t new_rsp = load_process(rip, rsp, argc, argv);
     new_process->process.rsp = new_rsp;
 
-    if(active == NULL) {
+    if(expired == NULL) {
         new_process->next = NULL;
-        active = new_process;
+        expired = new_process;
     } else {
-        Node * current = active;
+        Node * current = expired;
         Node * previous = NULL;
         // Si el numero del que quiero insertar es mayor que el current entonces tengo que insertarlo despues
         // new_process -> 2 y current -> 1. La 1 es mejor que la 2. El menor numero gana
@@ -55,12 +53,10 @@ pid_t create_process(uint64_t rip, int argc, char * argv[]) {
             if(previous != NULL) {
                 previous->next = new_process;
             } else {
-                active = new_process;
+                expired = new_process;
             }
         }
     }
-    // TODO DESALOJAR PROCESO
-
     return new_process->process.pid;
 }
 
@@ -97,4 +93,18 @@ uint64_t context_switch(uint64_t rsp) {
     return active->process.rsp;
 }
 
+int terminate_process(int return_value){
+    Node * current_process = active;
+    active = current_process->next;
+    memory_manager_free(current_process->process.stack_base);
+    memory_manager_free(current_process);
+    return return_value;
+}
 
+// int change_priority(int priority_value){
+//     if(priority_value < 0 && priority_value > 8){//Fuera del rango de priorities
+//         return -1;
+//     }
+//     active->priority = priority_value;
+    
+// }

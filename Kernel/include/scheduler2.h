@@ -15,6 +15,7 @@ typedef struct {
     status_t status;
     unsigned int quantums_left;
     uint64_t rsp;
+    uint64_t stack_base;
 } PCB;
 
 typedef struct node{

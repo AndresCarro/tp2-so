@@ -306,6 +306,10 @@ void inforeg(){
     }
 }
 
+void create_process(){
+    sys_create((pm)help,0,NULL);
+}
+
 //Tomado de x86-Barebones
 uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base)
 {
