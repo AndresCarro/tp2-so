@@ -307,7 +307,7 @@ void inforeg(){
 }
 
 void create_process(){
-    sys_create((pm)help,0,NULL);
+    sys_create((pm)printPrime,0,NULL);
 }
 
 //Tomado de x86-Barebones

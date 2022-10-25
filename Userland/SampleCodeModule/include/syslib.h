@@ -9,6 +9,11 @@
 #define STDOUT 1
 #define STDERR 2
 
+
+typedef void (*ptr)();
+typedef ptr (*pm)();
+
+
 #define EOF -1
 
 typedef struct {
@@ -24,6 +29,7 @@ void inv_opcode();
 void div_zero();
 void sys_execve(void (*f1)(), void (*f2)());
 void sys_copymem(uint64_t address, uint8_t * buffer, uint64_t length);
+void sys_create(void (*f1)(), int k, char ** f);
 
 unsigned int strlen(const char *s);
 void excepDivZero();
@@ -42,5 +48,7 @@ void fibonacciNumbs();
 void printmem();
 void inforeg();
 uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base);
+
+void create_process();
 
 #endif

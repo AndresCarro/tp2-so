@@ -1,6 +1,13 @@
 GLOBAL _defaultExit
+extern context_switch
+global load_process
 
 section .text
+
+_defaultExit:
+    mov rdi, rax
+    mov rax, 4
+    int 80h
 
 scheduler_handler:
     pushState
@@ -26,7 +33,7 @@ _start:
     ; parametro a la syscall
     mov rdi, rax
     ; TODO mov rax, Numero de syscall de exit
-    mov rax, 
+    mov rax, 4
     int 80h
 
 ; Creamos el stack "simulado" del proceso para que el scheduler

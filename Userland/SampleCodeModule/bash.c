@@ -3,8 +3,7 @@
 #define MAX_SIZE_CMD 32
 static char buffer[32];
 
-typedef void (*ptr)();
-typedef ptr (*pm)();
+
 
 void help();
 int readInput();
@@ -14,12 +13,12 @@ pm commandLine(char* buffer);
 
 void bash() {
     help();
-    int i=0;
-    while(i != -1){
-        puts("McWhigginOS:$ ");
-        i = readInput();
-        putChar('\n');
-    }
+    // int i=0;
+    // while(i != -1){
+    //     puts("McWhigginOS:$ ");
+    //     i = readInput();
+    //     putChar('\n');
+    // }
 }
 
 int readInput(){
@@ -76,7 +75,7 @@ pm commandLine(char* buffer){
         putChar('\n');
         return (pm)inforeg;
     }else if( (strcmp(buffer,"create"))){//el comando ingresado no existe.
-        unknownCommand();
+        return (pm)create_process;
     }
     return NULL;
 }

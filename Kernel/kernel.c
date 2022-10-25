@@ -4,6 +4,7 @@
 #include <naiveConsole.h>
 #include <idtLoader.h>
 #include <memory_manager.h>
+#include <scheduler2.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -48,12 +49,31 @@ void * initializeKernelBinary()
 	return getStackBase();
 }
 
+void waiting_process() {
+    while (1);
+}
+
+int prueba1() {
+	
+}
+
 int main()
 {	
-	ncClear();
+	prueba1();
+	_cli();
+
+    ncClear();
 	load_idt();
-	memory_manager_start((void *) ((uint64_t) endOfKernel), (uint64_t)sampleCodeModuleAddress - endOfKernel);
-	loadUserland(sampleCodeModuleAddress, (uint64_t*) 0x900000);
+	memory_manager_start((void *) 0xF00000, 0x2000000 - 0xF00000);
+
+	create_process(sampleCodeModuleAddress, 0, NULL);
+
+    _sti();
+
+    while (1) {
+        _hlt();
+    }
+
 	ncPrint("[Finished]");
 	return 0;
 }

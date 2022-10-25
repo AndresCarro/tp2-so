@@ -4,6 +4,7 @@
 Queue active = NULL;
 Queue expired = NULL;
 
+extern uint64_t load_process(uint64_t rip, uint64_t rsp, uint64_t argc, uint64_t argv);
 
 unsigned int process_count = 0;
 priority_t priorities[TOT_PRIORITIES] = {9, 8, 7, 6, 5, 4, 3, 2, 1};
@@ -32,31 +33,37 @@ pid_t create_process(uint64_t rip, int argc, char * argv[]) {
     // en el que me encontraba.
     uint64_t new_rsp = load_process(rip, rsp, argc, argv);
     new_process->process.rsp = new_rsp;
-
-    if(expired == NULL) {
+    
+    if (active == NULL) {
         new_process->next = NULL;
-        expired = new_process;
+        active = new_process;
     } else {
-        Node * current = expired;
-        Node * previous = NULL;
-        // Si el numero del que quiero insertar es mayor que el current entonces tengo que insertarlo despues
-        // new_process -> 2 y current -> 1. La 1 es mejor que la 2. El menor numero gana
-        while(current->next != NULL || new_process->process.priority >= current->process.priority) {
-            previous = current;
-            current = current->next;
-        }
-        if(current->next == NULL && new_process->process.priority >= current->process.priority) {
+        if(expired == NULL) {
             new_process->next = NULL;
-            current->next = new_process;
+            expired = new_process;
         } else {
-            new_process->next = current;
-            if(previous != NULL) {
-                previous->next = new_process;
+            Node * current = expired;
+            Node * previous = NULL;
+            // Si el numero del que quiero insertar es mayor que el current entonces tengo que insertarlo despues
+            // new_process -> 2 y current -> 1. La 1 es mejor que la 2. El menor numero gana
+            while(current->next != NULL || new_process->process.priority >= current->process.priority) {
+                previous = current;
+                current = current->next;
+            }
+            if(current->next == NULL && new_process->process.priority >= current->process.priority) {
+                new_process->next = NULL;
+                current->next = new_process;
             } else {
-                expired = new_process;
+                new_process->next = current;
+                if(previous != NULL) {
+                    previous->next = new_process;
+                } else {
+                    expired = new_process;
+                }
             }
         }
     }
+    
     return new_process->process.pid;
 }
 

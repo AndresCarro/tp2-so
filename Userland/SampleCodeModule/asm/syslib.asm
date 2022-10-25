@@ -7,6 +7,7 @@ GLOBAL sys_time
 GLOBAL sys_copymem
 GLOBAL inv_opcode
 GLOBAL div_zero
+GLOBAL sys_create
 
 section .text
 sys_write:
