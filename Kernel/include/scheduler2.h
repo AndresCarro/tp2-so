@@ -1,7 +1,7 @@
 #ifndef SCHEDULER_H
 #define SCHEDULER_H
 
-
+#include <memory_manager.h>
 #include <stdint.h>
 #include <defs.h>
 
@@ -24,5 +24,7 @@ typedef struct node{
 } Node;
 
 typedef Node * Queue;
+
+pid_t create_process(uint64_t rip, int argc, char * argv[]);
 
 #endif

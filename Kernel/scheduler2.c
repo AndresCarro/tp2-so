@@ -7,11 +7,13 @@ Queue expired = NULL;
 extern uint64_t load_process(uint64_t rip, uint64_t rsp, uint64_t argc, uint64_t argv);
 
 unsigned int process_count = 0;
+unsigned char started_userland = 0;
 priority_t priorities[TOT_PRIORITIES] = {9, 8, 7, 6, 5, 4, 3, 2, 1};
+
 
 pid_t create_process(uint64_t rip, int argc, char * argv[]) {
     Node * new_process = memory_manager_alloc(sizeof(Node));
-    new_process->process.pid = ++process_count;
+    new_process->process.pid = process_count++;
     new_process->process.priority = DEF_PRIORITY;
     new_process->process.quantums_left = priorities[DEF_PRIORITY];
     new_process->process.status = READY;
@@ -31,7 +33,7 @@ pid_t create_process(uint64_t rip, int argc, char * argv[]) {
     // Este new_rsp es el que tengo que guardar en el pcb porque es donde esta
     // guardado el stack que me va a permitir correr nuevamente el proceso en el contexto
     // en el que me encontraba.
-    uint64_t new_rsp = load_process(rip, rsp, argc, argv);
+    uint64_t new_rsp = load_process(rip, rsp + 4 * 1024, argc, argv);
     new_process->process.rsp = new_rsp;
     
     if (active == NULL) {
@@ -70,6 +72,11 @@ pid_t create_process(uint64_t rip, int argc, char * argv[]) {
 // El rsp es el rsp del proceso que se estaba corriendo. Donde quedaron los registros
 uint64_t context_switch(uint64_t rsp) {
     Node * current_process = active;
+    if (!started_userland) {
+        started_userland = 1;
+        return current_process->process.rsp;
+    }
+
     current_process->process.rsp = rsp;
 
     if(current_process->process.quantums_left > 0) {

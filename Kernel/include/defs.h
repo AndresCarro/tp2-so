@@ -5,7 +5,7 @@
 #ifndef _defs_
 #define _defs_
 
-#define NULL ((void*)0)
+#include <stddef.h>
 
 /* Flags para derechos de acceso de los segmentos */
 #define ACS_PRESENT     0x80            /* segmento presente en memoria */
