@@ -1,5 +1,7 @@
 #include <blocked_queue.h>
 
+// Esto es lo que usa un proceso para determinar los procesos bloqueados por el mismo
+// Ejemplo: lo usaria el semaforo para saber quienes estan bloqueados esperando al semaforo
 BlockedQueueADT new_blocked_queue() {
     BlockedQueueADT queue = memory_manager_alloc(sizeof(BlockedQueueCDT));
     if(queue == NULL) {

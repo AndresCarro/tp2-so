@@ -53,6 +53,27 @@ void waiting_process() {
     while (1);
 }
 
+void dummy_process2() {
+    while (1) {
+        ncPrint("B");
+        _hlt();
+    }
+}
+
+void dummy_process3() {
+    while (1) {
+        ncPrint("C");
+        _hlt();
+    }
+}
+
+void dummy_process4() {
+    while (1) {
+        ncPrint("D");
+        _hlt();
+    }
+}
+
 int main()
 {	
 	_cli();
@@ -60,9 +81,11 @@ int main()
     ncClear();
 	load_idt();
 	memory_manager_start((void *) 0xF00000, 0x2000000 - 0xF00000);
-
+	scheduler_init();
 	create_process(sampleCodeModuleAddress, 0, NULL);
-
+	create_process(dummy_process2, 0, NULL);
+	create_process(dummy_process3, 0, NULL);
+	create_process(dummy_process4, 0, NULL);
     _sti();
 
     while (1) {

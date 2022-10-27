@@ -26,5 +26,8 @@ typedef struct node{
 typedef Node * Queue;
 
 pid_t create_process(uint64_t rip, int argc, char * argv[]);
+void scheduler_init();
+extern void _int20h();
+
 
 #endif

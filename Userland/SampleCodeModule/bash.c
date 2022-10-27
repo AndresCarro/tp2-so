@@ -12,7 +12,11 @@ void pipeManager();
 pm commandLine(char* buffer);
 
 void bash() {
+    // while(1) {
+    //     puts("Holaaaa Alejo\n");
+    // }
     help();
+    // printPrime();
     // int i=0;
     // while(i != -1){
     //     puts("McWhigginOS:$ ");

@@ -34,7 +34,7 @@
 #define TERMINATED 2
 
 /* Data Types */
-typedef unsigned int pid_t;
+typedef int pid_t;
 typedef unsigned int priority_t;
 typedef unsigned int status_t;
 

@@ -1,6 +1,7 @@
 GLOBAL _defaultExit
-extern context_switch
-global load_process
+EXTERN context_switch
+GLOBAL load_process
+GLOBAL _int20h
 
 section .text
 
@@ -35,6 +36,7 @@ _start:
     ; TODO mov rax, Numero de syscall de exit
     mov rax, 4
     int 80h
+    int 20h
 
 ; Creamos el stack "simulado" del proceso para que el scheduler
 ; pueda tomar el programa y correrlo
@@ -74,3 +76,7 @@ load_process:
 
     leave
     ret    	
+
+_int20h:
+    int 20h
+    ret
