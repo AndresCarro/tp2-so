@@ -9,6 +9,8 @@ void unknownCommand();
 void pipeManager();
 pm commandLine(char* buffer);
 
+extern void halt();
+
 void bash() {
     int i=0;
     while(i != -1){
@@ -43,6 +45,23 @@ void unknownCommand(){
     putChar('\n');
 }
 
+void test_nice2() {
+    nice(8);
+    while (1) {
+        putChar('B');
+        halt();
+    }
+}
+
+void test_nice() {
+    exec((uint64_t) test_nice2, 0, NULL);
+    nice(0);
+    while (1) {
+        putChar('A');
+        halt();
+    }
+}
+
 pm commandLine(char* buffer){
     if(strcmp(buffer,"time") == 0){
         putChar('\n');
@@ -72,8 +91,9 @@ pm commandLine(char* buffer){
     }else if( (strcmp(buffer,"inforeg")) == 0){
         putChar('\n');
         return (pm)inforeg;
-    }else if( (strcmp(buffer,"create"))){//el comando ingresado no existe.
-        return (pm)create_process;
+    } else if (strcmp(buffer, "test_nice") == 0) {
+        putChar('\n');
+        return (pm) test_nice;
     }
     return NULL;
 }

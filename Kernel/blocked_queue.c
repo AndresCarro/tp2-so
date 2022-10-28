@@ -42,3 +42,15 @@ void enqueue_pid(BlockedQueueADT queue, pid_t pid) {
     }
 }
 
+void free_queue(BlockedQueueADT queue) {
+    if (queue == NULL) {
+        return;
+    }
+
+    while (queue->first != NULL) {
+        BlockedNode * aux = queue->first;
+        queue->first = queue->first->next;
+        memory_manager_free(aux);
+    }
+    memory_manager_free(queue);
+}

@@ -33,6 +33,7 @@ void sys_copymem(uint64_t address, uint8_t * buffer, uint64_t length);
 
 pid_t exec(uint64_t program, unsigned int argc, char * argv[]);
 pid_t waitpid(pid_t pid);
+int nice(int new_priority);
 
 unsigned int strlen(const char *s);
 void excepDivZero();

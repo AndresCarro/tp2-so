@@ -16,6 +16,7 @@ typedef struct {
     unsigned int quantums_left;
     uint64_t rsp;
     uint64_t stack_base;
+    int new_priority;
     BlockedQueueADT blocked_queue;
 } PCB;
 
@@ -33,5 +34,6 @@ void block_process(pid_t process_pid);
 void unblock_process(pid_t process_pid);
 PCB * get_process(pid_t pid);
 pid_t get_current_pid();
+int change_priority(int priority_value);
 
 #endif
