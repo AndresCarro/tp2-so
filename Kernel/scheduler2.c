@@ -4,15 +4,14 @@
 
 Queue active = NULL;
 Queue expired = NULL;
+priority_t priorities[TOT_PRIORITIES] = {9, 8, 7, 6, 5, 4, 3, 2, 1};
 
 extern uint64_t load_process(uint64_t rip, uint64_t rsp, uint64_t argc, uint64_t argv);
+extern void _int20h();
 
 int process_count = -1;
-// Esta variable lo que hace es contar la cantidad de procesos listos en ambas listas, tanto la de
-// activos como la de expirados
 unsigned int process_ready_count = 0;
 unsigned char something_running = 0;
-priority_t priorities[TOT_PRIORITIES] = {9, 8, 7, 6, 5, 4, 3, 2, 1};
 pid_t dummy_process_pid = NULL;
 
 void dummy_process() {

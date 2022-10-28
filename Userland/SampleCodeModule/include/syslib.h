@@ -1,6 +1,7 @@
 #ifndef SYSLIB_H
 #define SYSLIB_H
 
+#include <defs.h>
 #include <stdint.h>
 
 #define NULL (void*)0
@@ -29,7 +30,8 @@ void inv_opcode();
 void div_zero();
 void sys_execve(void (*f1)(), void (*f2)());
 void sys_copymem(uint64_t address, uint8_t * buffer, uint64_t length);
-void sys_create(void (*f1)(), int k, char ** f);
+
+pid_t exec(uint64_t program, unsigned int argc, char * argv[]);
 
 unsigned int strlen(const char *s);
 void excepDivZero();

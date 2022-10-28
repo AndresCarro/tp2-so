@@ -2,7 +2,7 @@ GLOBAL sys_write
 GLOBAL sys_read
 GLOBAL sys_getregs
 GLOBAL sys_exit
-GLOBAL sys_execve
+GLOBAL exec
 GLOBAL sys_time
 GLOBAL sys_copymem
 GLOBAL inv_opcode
@@ -46,13 +46,13 @@ sys_exit:
     pop rbp
     ret
 
-sys_execve:
-    push rbp
-    mov rbp,rsp
-    mov rax,3
-    int 0x80
-    mov rsp,rbp
-    pop rbp
+exec:
+    enter 0,0
+    
+    mov rax, 3
+    int 80h
+    
+    leave
     ret
 
 sys_time:

@@ -1,5 +1,5 @@
-#ifndef SCHEDULER_H
-#define SCHEDULER_H
+#ifndef SCHEDULER_H2
+#define SCHEDULER_H2
 
 #include <memory_manager.h>
 #include <stdint.h>
@@ -26,9 +26,8 @@ typedef Node * Queue;
 
 void scheduler_init();
 pid_t create_process(uint64_t rip, int argc, char * argv[]);
+int terminate_process(int return_value);
 void block_process(pid_t process_pid);
 void unblock_process(pid_t process_pid);
-
-extern void _int20h();
 
 #endif
