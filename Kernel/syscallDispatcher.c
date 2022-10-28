@@ -8,6 +8,7 @@ static void sys_write(unsigned fd, const char* buffer, uint64_t count);
 static pid_t sys_exec(uint64_t program, unsigned int argc, char * argv[]);
 static void sys_exit(int retValue);
 static pid_t sys_waitpid(pid_t pid);
+static int sys_nice(int new_priority);
 
 static void sys_time(time_t * s);
 static void sys_copymem(uint64_t address, uint8_t * buffer, uint64_t length);
@@ -49,6 +50,8 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
             break;
         case 10:
             return sys_waitpid((pid_t) rdi);
+        case 11:
+            return sys_nice((int) rdi);
     }
     return 0;
 }
@@ -102,6 +105,10 @@ static pid_t sys_waitpid(pid_t pid) {
     block_process(current_pid);
 
     return pid;
+}
+
+static int sys_nice(int new_priority) {
+    return change_priority(new_priority);
 }
 
 static void sys_time(time_t * s){

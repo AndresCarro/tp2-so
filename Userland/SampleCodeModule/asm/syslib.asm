@@ -4,13 +4,20 @@ GLOBAL sys_getregs
 GLOBAL sys_exit
 GLOBAL exec
 GLOBAL waitpid
+GLOBAL nice
 GLOBAL sys_time
 GLOBAL sys_copymem
 GLOBAL inv_opcode
 GLOBAL div_zero
 GLOBAL sys_create
 
+GLOBAL halt
+
 section .text
+halt:
+    hlt
+    ret
+
 sys_write:
     push rbp
     mov rbp, rsp
@@ -60,6 +67,15 @@ waitpid:
     enter 0,0
 
     mov rax, 10
+    int 80h
+
+    leave
+    ret
+
+nice:
+    enter 0,0
+
+    mov rax, 11
     int 80h
 
     leave

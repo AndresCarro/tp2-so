@@ -133,6 +133,7 @@ pid_t create_process(uint64_t rip, int argc, char * argv[]) {
     new_process->process.quantums_left = priorities[DEF_PRIORITY];
     new_process->process.status = READY;
     new_process->process.blocked_queue = new_blocked_queue();
+    new_process->process.new_priority = -1;
     // ; Creamos el stack "simulado" del proceso para que el scheduler
     // ; pueda tomar el programa y correrlo
     // ; rdi -> entryPoint, el puntero a funcion rip
@@ -190,7 +191,7 @@ pid_t create_process(uint64_t rip, int argc, char * argv[]) {
 void next_to_run() {
     Node * current = active;
     Node * previous = NULL;
-    while(current != NULL && current->process.status == BLOCKED) {
+    while (current != NULL && current->process.status == BLOCKED) {
         previous = current;
         current = current->next;
     }
@@ -202,19 +203,21 @@ void next_to_run() {
             active = current;
         }
     } else {
-        current = expired;
+        Node * aux = active;
+        active = expired;
+        expired = aux;
+
+        current = active;
         previous = NULL;
-        while(current->process.status == BLOCKED) {
+        while (current != NULL && current->process.status == BLOCKED) {
             previous = current;
             current = current->next;
         }
-        if(previous == NULL) {
-            expired = current->next;   
-        } else {
+        if (previous != NULL) {
             previous->next = current->next;
+            current->next = active;
+            active = current;
         }
-        current->next = active;
-        active = current;
     }
 }
 
@@ -283,6 +286,10 @@ uint64_t context_switch(uint64_t rsp) {
     // teniendo en cuenta su prioridad.
     if(current_process->process.quantums_left == 0) {
         current_process->process.quantums_left = priorities[current_process->process.priority];
+        if (current_process->process.new_priority != -1) {
+            current_process->process.priority = current_process->process.new_priority;
+            current_process->process.new_priority = -1;
+        }
         Node * current_expired = expired;
         Node * previous_expired = NULL;
         while(current_expired != NULL && current_process->process.priority >= current_expired->process.priority) {
@@ -321,15 +328,17 @@ int terminate_process(int return_value){
 
     active = current_process->next;
     process_ready_count--;
+    free_queue(current_process->process.blocked_queue);
     memory_manager_free(current_process->process.stack_base);
     memory_manager_free(current_process);
     something_running = 0;
     return return_value;
 }
 
-// int change_priority(int priority_value){
-//     if(priority_value < 0 && priority_value > 8){//Fuera del rango de priorities
-//         return -1;
-//     }
-//     active->priority = priority_value;
-// }
+int change_priority(int priority_value){
+    if(priority_value < 0 && priority_value > 8){//Fuera del rango de priorities
+        return -1;
+    }
+    active->process.new_priority = priority_value;
+    return 0;
+}
