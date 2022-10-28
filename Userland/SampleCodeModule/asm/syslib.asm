@@ -2,11 +2,13 @@ GLOBAL sys_write
 GLOBAL sys_read
 GLOBAL sys_getregs
 GLOBAL sys_exit
-GLOBAL sys_execve
+GLOBAL exec
+GLOBAL waitpid
 GLOBAL sys_time
 GLOBAL sys_copymem
 GLOBAL inv_opcode
 GLOBAL div_zero
+GLOBAL sys_create
 
 section .text
 sys_write:
@@ -45,13 +47,22 @@ sys_exit:
     pop rbp
     ret
 
-sys_execve:
-    push rbp
-    mov rbp,rsp
-    mov rax,3
-    int 0x80
-    mov rsp,rbp
-    pop rbp
+exec:
+    enter 0,0
+    
+    mov rax, 3
+    int 80h
+    
+    leave
+    ret
+
+waitpid:
+    enter 0,0
+
+    mov rax, 10
+    int 80h
+
+    leave
     ret
 
 sys_time:
@@ -67,6 +78,15 @@ sys_copymem:
     push rbp
     mov rbp,rsp
     mov rax,6
+    int 0x80
+    mov rsp,rbp
+    pop rbp
+    ret
+
+sys_create:
+    push rbp
+    mov rbp,rsp
+    mov rax,10
     int 0x80
     mov rsp,rbp
     pop rbp

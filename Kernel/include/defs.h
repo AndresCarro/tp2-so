@@ -5,7 +5,7 @@
 #ifndef _defs_
 #define _defs_
 
-#define NULL ((void*)0)
+#include <stddef.h>
 
 /* Flags para derechos de acceso de los segmentos */
 #define ACS_PRESENT     0x80            /* segmento presente en memoria */
@@ -27,5 +27,15 @@
 #define RIP_POS REG_AMOUNT
 #define RFLAGS_POS (REG_AMOUNT+2)
 #define RSP_POS (REG_AMOUNT+3)
+
+/* Status */
+#define READY 0
+#define BLOCKED 1
+#define TERMINATED 2
+
+/* Data Types */
+typedef int pid_t;
+typedef unsigned int priority_t;
+typedef unsigned int status_t;
 
 #endif

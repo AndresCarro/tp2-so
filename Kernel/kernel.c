@@ -4,6 +4,7 @@
 #include <naiveConsole.h>
 #include <idtLoader.h>
 #include <memory_manager.h>
+#include <scheduler2.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -14,19 +15,17 @@ extern uint8_t endOfKernel;
 
 static const uint64_t PageSize = 0x1000;
 
-static void * const sampleCodeModuleAddress = (void*)0x400000;
-static void * const sampleDataModuleAddress = (void*)0x500000;
+static uint64_t const sampleCodeModuleAddress = 0x400000;
+static uint64_t const sampleDataModuleAddress = 0x500000;
 
 typedef int (*EntryPoint)();
 
 
-void clearBSS(void * bssAddress, uint64_t bssSize)
-{
+void clearBSS(void * bssAddress, uint64_t bssSize) {
 	memset(bssAddress, 0, bssSize);
 }
 
-void * getStackBase()
-{
+void * getStackBase() {
 	return (void*)(
 		(uint64_t)&endOfKernel
 		+ PageSize * 8				//The size of the stack itself, 32KiB
@@ -34,11 +33,10 @@ void * getStackBase()
 	);
 }
 
-void * initializeKernelBinary()
-{
+void * initializeKernelBinary() {
 	void * moduleAddresses[] = {
-		sampleCodeModuleAddress,
-		sampleDataModuleAddress
+		(void *) sampleCodeModuleAddress,
+		(void *) sampleDataModuleAddress
 	};
 
 	loadModules(&endOfKernelBinary, moduleAddresses);
@@ -48,12 +46,18 @@ void * initializeKernelBinary()
 	return getStackBase();
 }
 
-int main()
-{	
-	ncClear();
+int main() {	
+	_cli();
+
+    ncClear();
 	load_idt();
-	memory_manager_start((void *) ((uint64_t) endOfKernel), (uint64_t)sampleCodeModuleAddress - endOfKernel);
-	loadUserland(sampleCodeModuleAddress, (uint64_t*) 0x900000);
+	memory_manager_start((void *) 0xF00000, 0x2000000 - 0xF00000);
+	scheduler_init();
+	create_process(sampleCodeModuleAddress, 0, NULL);
+    _sti();
+
+    _hlt();
+
 	ncPrint("[Finished]");
 	return 0;
 }

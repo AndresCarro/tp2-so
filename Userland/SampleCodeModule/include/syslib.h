@@ -1,6 +1,7 @@
 #ifndef SYSLIB_H
 #define SYSLIB_H
 
+#include <defs.h>
 #include <stdint.h>
 
 #define NULL (void*)0
@@ -8,6 +9,11 @@
 #define STDIN 0
 #define STDOUT 1
 #define STDERR 2
+
+
+typedef void (*ptr)();
+typedef ptr (*pm)();
+
 
 #define EOF -1
 
@@ -24,6 +30,9 @@ void inv_opcode();
 void div_zero();
 void sys_execve(void (*f1)(), void (*f2)());
 void sys_copymem(uint64_t address, uint8_t * buffer, uint64_t length);
+
+pid_t exec(uint64_t program, unsigned int argc, char * argv[]);
+pid_t waitpid(pid_t pid);
 
 unsigned int strlen(const char *s);
 void excepDivZero();
@@ -42,5 +51,7 @@ void fibonacciNumbs();
 void printmem();
 void inforeg();
 uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base);
+
+void create_process();
 
 #endif

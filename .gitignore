@@ -137,3 +137,4 @@ Temporary Items
 
 # User-specific compile script
 compile.sh
+.gdbinit
