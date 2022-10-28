@@ -8,7 +8,6 @@
 #define TOT_PRIORITIES 9
 #define DEF_PRIORITY 5
 
-
 typedef struct {
     pid_t pid;
     priority_t priority;
@@ -25,9 +24,11 @@ typedef struct node{
 
 typedef Node * Queue;
 
-pid_t create_process(uint64_t rip, int argc, char * argv[]);
 void scheduler_init();
-extern void _int20h();
+pid_t create_process(uint64_t rip, int argc, char * argv[]);
+void block_process(pid_t process_pid);
+void unblock_process(pid_t process_pid);
 
+extern void _int20h();
 
 #endif

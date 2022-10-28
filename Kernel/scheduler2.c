@@ -28,8 +28,7 @@ void scheduler_init() {
     process_ready_count--;
 }
 
-// Devuelve 1 si lo bloqueo, sino devuelve 0
-char unblock_process(pid_t process_pid) {
+void unblock_process(pid_t process_pid) {
     Node * current = active;
     Node * previous = NULL;
     char found = 0;
@@ -38,12 +37,6 @@ char unblock_process(pid_t process_pid) {
     while(!found && current != NULL) {
         if(current->process.pid == process_pid) {
             found = 1;
-            // Primer elemento
-            if(previous == NULL) {
-                active = current->next;
-            } else {
-                previous->next = current->next;
-            }
             current->process.status = READY;
         } else {
             previous = current;
@@ -56,12 +49,6 @@ char unblock_process(pid_t process_pid) {
     while(!found && current != NULL) {
         if(current->process.pid == process_pid) {
             found = 1;
-            // Primer elemento
-            if(previous == NULL) {
-                expired = current->next;
-            } else {
-                previous->next = current->next;
-            }
             current->process.status = READY;
         } else {
             previous = current;
@@ -69,14 +56,13 @@ char unblock_process(pid_t process_pid) {
         }
     }
     // No tengo que hacer nada pa. Solamente cambio el estado.
-    // // Llamamos al rsp del que se ejecuto ahora
     if(found) {
         process_ready_count++;
     }
 }
 
 // Devuelve 1 si lo bloqueo, sino devuelve 0
-char block_process(pid_t process_pid) {
+void block_process(pid_t process_pid) {
     Node * current = active;
     Node * previous = NULL;
     char found = 0;
@@ -85,12 +71,6 @@ char block_process(pid_t process_pid) {
     while(!found && current != NULL) {
         if(current->process.pid == process_pid) {
             found = 1;
-            // Primer elemento
-            if(previous == NULL) {
-                active = current->next;
-            } else {
-                previous->next = current->next;
-            }
             current->process.status = BLOCKED;
         } else {
             previous = current;
@@ -103,12 +83,6 @@ char block_process(pid_t process_pid) {
     while(!found && current != NULL) {
         if(current->process.pid == process_pid) {
             found = 1;
-            // Primer elemento
-            if(previous == NULL) {
-                expired = current->next;
-            } else {
-                previous->next = current->next;
-            }
             current->process.status = BLOCKED;
         } else {
             previous = current;
@@ -244,9 +218,7 @@ void prepare_dummy_for_work() {
         active = current;
     }
 }
-void prueba1(){
 
-}
 // El rsp es el rsp del proceso que se estaba corriendo. Donde quedaron los registros
 uint64_t context_switch(uint64_t rsp) {
     // C1.1 y C1.3 (Todos)
@@ -275,7 +247,7 @@ uint64_t context_switch(uint64_t rsp) {
         current_process->process.quantums_left--;
         return rsp;
     }
-    prueba1();
+
     // Acomodo el que termino de correr (no me interesa el status) en su lugar en la lista de expirados
     // teniendo en cuenta su prioridad.
     if(current_process->process.quantums_left == 0) {
