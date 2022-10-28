@@ -54,22 +54,38 @@ void waiting_process() {
 }
 
 void dummy_process2() {
-    while (1) {
+    int i = 0;
+	while (i < 100) {
         ncPrint("B");
+		ncPrintDec(i);
+		i++;
+		if(i == 20) {
+			block_process(3);
+		}
+		if(i == 70) {
+			unblock_process(3);
+		}
         _hlt();
     }
 }
 
 void dummy_process3() {
-    while (1) {
+    int i = 0;
+	while (i < 100) {
         ncPrint("C");
+		ncPrintDec(i);
+		i++;
         _hlt();
     }
 }
 
 void dummy_process4() {
-    while (1) {
+    int i = 0;
+	while (i < 100) {
         ncPrint("D");
+		ncPrintDec(i);
+		i++;
+		
         _hlt();
     }
 }

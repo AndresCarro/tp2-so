@@ -24,9 +24,57 @@ void dummy_process() {
 
 void scheduler_init() {
     dummy_process_pid = create_process(dummy_process, 0, NULL);
+    active->process.status = BLOCKED;
+    process_ready_count--;
 }
 
-// Obtener el proceso de la lista de activos o de la lista de expirados y llevar ese puntero del PCB a la lista de bloqueados.
+// Devuelve 1 si lo bloqueo, sino devuelve 0
+char unblock_process(pid_t process_pid) {
+    Node * current = active;
+    Node * previous = NULL;
+    char found = 0;
+
+    // Buscamos en la lista de activos
+    while(!found && current != NULL) {
+        if(current->process.pid == process_pid) {
+            found = 1;
+            // Primer elemento
+            if(previous == NULL) {
+                active = current->next;
+            } else {
+                previous->next = current->next;
+            }
+            current->process.status = READY;
+        } else {
+            previous = current;
+            current = current->next;
+        }
+    }
+    // Si no lo encontre en la de activos entonces lo busco en la expirados
+    current = expired;
+    previous = NULL;
+    while(!found && current != NULL) {
+        if(current->process.pid == process_pid) {
+            found = 1;
+            // Primer elemento
+            if(previous == NULL) {
+                expired = current->next;
+            } else {
+                previous->next = current->next;
+            }
+            current->process.status = READY;
+        } else {
+            previous = current;
+            current = current->next;
+        }
+    }
+    // No tengo que hacer nada pa. Solamente cambio el estado.
+    // // Llamamos al rsp del que se ejecuto ahora
+    if(found) {
+        process_ready_count++;
+    }
+}
+
 // Devuelve 1 si lo bloqueo, sino devuelve 0
 char block_process(pid_t process_pid) {
     Node * current = active;
@@ -39,7 +87,6 @@ char block_process(pid_t process_pid) {
             found = 1;
             // Primer elemento
             if(previous == NULL) {
-                
                 active = current->next;
             } else {
                 previous->next = current->next;
@@ -133,97 +180,131 @@ pid_t create_process(uint64_t rip, int argc, char * argv[]) {
     return new_process->process.pid;
 }
 
-// El rsp es el rsp del proceso que se estaba corriendo. Donde quedaron los registros
-uint64_t context_switch(uint64_t rsp) {
-    Node * current_process = active;
-    // Si no empezo el userland entonces lo unico que hiciste fue iniciar el kernel y cargar el userland a la lista de activos
-    // Si no tengo nada corriendo porque el proceso que estaba corriendo terminó, entonces tengo que poner a correr
-    // algun proceso en la lista de activos o expirados.
-    if (!something_running) {
-        something_running = 1;
-        // Si current_process == NULL entonces en la lista de activos no tengo nada y por ende, tengo
-        // que copiar la de expirados a la de activos y tambien actualizar a current_process porque luego
-        // lo retorno
-        if(current_process == NULL) {
-            active = expired;
-            current_process = active;
-            expired = NULL;
-        }
-        // Si current_process != NULL entonces retorno ese mismo elemento porque es el siguiente a correrse.
-        //TODO current_process != NULL pero tiene status BLOCKED
-        return current_process->process.rsp;
+// Deja todo para el head de active sea el que tenga que correr
+// TENGO QUE TENER ALGO PARA CORRER SI O SI
+void next_to_run() {
+    Node * current = active;
+    Node * previous = NULL;
+    while(current != NULL && current->process.status == BLOCKED) {
+        previous = current;
+        current = current->next;
     }
-    // Este rsp es del proceso que estaba corriendo hasta el momento
-    current_process->process.rsp = rsp;
-
-    // Si el current_process no esta bloqueado y el proceso le sobran quantums entonces decremento en uno
-    // los quantums y retorno el rsp
-    if(current_process->process.status != BLOCKED && current_process->process.quantums_left > 0) {
-        current_process->process.quantums_left--;
-        return rsp;
-    }
-    current_process->process.quantums_left = priorities[current_process->process.priority];
-    // En este caso el current_process se quedo sin quantums.
-    // Active es ahora el siguiente proceso en la lista.
-    active = current_process->next;
-    // Si es igual a cero tengo que poner a correr el dummy
-    if(process_ready_count == 0) {
-        char dummy_found = 0;
-        Node * current = active;
-        Node * previous = NULL;
-        while(current != NULL && !dummy_found && current->process.pid != dummy_process_pid) {
-            previous = current;
-            current = current->next;
+    // Si currrent es distinto de NULL entonces status = READY
+    if(current != NULL) {
+        if(previous != NULL) {
+            previous->next = current->next;
+            current->next = active;
+            active = current;
         }
-        if(dummy_found) {
-            if(previous != NULL) {
-                previous->next = current->next;
-                current->next = active;
-                active = current;
-            }
-            return active->process.rsp;
-        }
+    } else {
         current = expired;
         previous = NULL;
-        while(current != NULL && !dummy_found && current->process.pid != dummy_process_pid) {
+        while(current->process.status == BLOCKED) {
             previous = current;
             current = current->next;
         }
-        // Expired en este caso nunca va a ser NULL porque como minimo tiene a dummy process
         if(previous == NULL) {
-            expired = expired->next;
+            expired = current->next;   
         } else {
             previous->next = current->next;
         }
         current->next = active;
         active = current;
-        return active->process.rsp;
-    }    
+    }
+}
 
-    char found_next_to_run = 0;
-
-    while(!found_next_to_run) {
-        Node * current_expired = expired;
-        if(current_expired == NULL) {
-            // SI ENTRO ACA ENTONCES EXPIRED ES VACIO
-            // EXPIRED NO TIENE NADA 
-            expired = current_process;
-            expired->next = NULL;
-        } else {
-            while(current_expired->next != NULL) {
-                current_expired = current_expired->next;
-            }
-            current_expired->next = current_process;
-            current_process->next = NULL;
+// Deja todo para el head de active sea el que tenga que correr
+void prepare_dummy_for_work() {
+    Node * current = active;
+    Node * previous = NULL;
+    while(current != NULL && current->process.pid != dummy_process_pid) {
+        previous = current;
+        current = current->next;
+    }
+    // Si currrent es distinto de NULL entonces lo encontré
+    if(current != NULL) {
+        if(previous != NULL) {
+            previous->next = current->next;
+            current->next = active;
+            active = current;
         }
-        // CHEQUEAR QUE ACTIVE ES NULL
+    } else {
+        current = expired;
+        previous = NULL;
+        while(current->process.pid != dummy_process_pid) {
+            previous = current;
+            current = current->next;
+        }
+        if(previous == NULL) {
+            expired = current->next;   
+        } else {
+            previous->next = current->next;
+        }
+        current->next = active;
+        active = current;
+    }
+}
+void prueba1(){
+
+}
+// El rsp es el rsp del proceso que se estaba corriendo. Donde quedaron los registros
+uint64_t context_switch(uint64_t rsp) {
+    // C1.1 y C1.3 (Todos)
+    if (!something_running) {
+        something_running = 1;
+        // C1.1 o C1.3.1: NO HAY NADA CORRIENDOSE Y TENGO ALGO PARA CORRER
+        if(process_ready_count > 0) {
+            next_to_run();
+        } else { // C1.3.2 y C1.3.3
+            prepare_dummy_for_work();
+        }
+        return active->process.rsp;
+    }
+
+    Node * current_process = active;
+    current_process->process.rsp = rsp;
+
+    // Si no tengo procesos en ready, es decir, estan todos bloqueados tengo que correr el dummy
+    if(process_ready_count == 0) {
+        prepare_dummy_for_work();
+        return active->process.rsp;
+    }
+
+    
+    if(current_process->process.status != BLOCKED && current_process->process.quantums_left > 0) {
+        current_process->process.quantums_left--;
+        return rsp;
+    }
+    prueba1();
+    // Acomodo el que termino de correr (no me interesa el status) en su lugar en la lista de expirados
+    // teniendo en cuenta su prioridad.
+    if(current_process->process.quantums_left == 0) {
+        current_process->process.quantums_left = priorities[current_process->process.priority];
+        Node * current_expired = expired;
+        Node * previous_expired = NULL;
+        while(current_expired != NULL && current_process->process.priority >= current_expired->process.priority) {
+            previous_expired = current_expired;
+            current_expired = current_expired->next;
+        }
+        /*
+            Debo colocar el current_process en el lugar indicado dentro de los expirados pero teniendo muy en cuenta
+            que antes de cambiar el next de este nodo tengo que hacerlo en el active para evitar problemas.
+            En cualquiera de ambos casos active tendra que ser igual a active->next porque paso el current_process a expirados.
+        */
+        active = active->next;
+        if(previous_expired == NULL) {
+            current_process->next = expired;
+            expired = current_process;
+        } else {
+            previous_expired->next = current_process;
+            current_process->next = current_expired;
+        }
         if(active == NULL) {
             active = expired;
             expired = NULL;
         }
-        found_next_to_run = active->process.status != BLOCKED;
-        current_process = active;
     }
+    next_to_run();
     return active->process.rsp;
 }
 
