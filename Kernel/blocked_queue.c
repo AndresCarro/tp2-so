@@ -12,6 +12,13 @@ BlockedQueueADT new_blocked_queue() {
     return queue;
 }
 
+int is_empty(BlockedQueueADT queue) {
+    if (queue == NULL) {
+        return -1;
+    }
+    return queue->first == NULL;
+}
+
 pid_t dequeue_pid(BlockedQueueADT queue) {
     if(queue == NULL) {
         return -1;

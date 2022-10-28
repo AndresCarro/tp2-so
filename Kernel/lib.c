@@ -1,7 +1,6 @@
 #include <lib.h>
 
-void * memset(void * destination, int32_t c, uint64_t length)
-{
+void * memset(void * destination, int32_t c, uint64_t length) {
 	uint8_t chr = (uint8_t)c;
 	char * dst = (char*)destination;
 
@@ -11,8 +10,7 @@ void * memset(void * destination, int32_t c, uint64_t length)
 	return destination;
 }
 
-void * memcpy(void * destination, const void * source, uint64_t length)
-{
+void * memcpy(void * destination, const void * source, uint64_t length) {
 	/*
 	* memcpy does not support overlapping buffers, so always do it
 	* forwards. (Don't change this without adjusting memmove.)
@@ -47,4 +45,35 @@ void * memcpy(void * destination, const void * source, uint64_t length)
 	}
 
 	return destination;
+}
+
+//https://code.woboq.org/userspace/glibc/string/strcmp.c.html
+int strcmp (const char *p1, const char *p2){
+	const unsigned char *s1 = (const unsigned char *) p1;
+	const unsigned char *s2 = (const unsigned char *) p2;
+	unsigned char c1, c2;
+	do {
+		c1 = (unsigned char) *s1++;
+		c2 = (unsigned char) *s2++;
+		if (c1 == '\0')
+			return c1 - c2;
+	} while (c1 == c2);
+	return c1 - c2;
+}
+
+unsigned int strlen(const char *str) {
+    unsigned int len = 0;
+    while (str[len] != '\0') {
+        len++;
+    }
+    return len;
+}
+
+char * strcpy(char * str) {
+	unsigned int len = strlen(str);
+	char * new_str = memory_manager_alloc(len+1);
+	if (new_str != NULL) {
+		memcpy(new_str, str, len+1);
+	}
+	return new_str;
 }
