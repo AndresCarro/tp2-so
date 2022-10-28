@@ -5,8 +5,9 @@
 
 static uint64_t sys_read(unsigned int fd, char* output, uint64_t count);
 static void sys_write(unsigned fd, const char* buffer, uint64_t count);
-static int sys_exec(uint64_t program, unsigned int argc, char * argv[]);
+static pid_t sys_exec(uint64_t program, unsigned int argc, char * argv[]);
 static void sys_exit(int retValue);
+static pid_t sys_waitpid(pid_t pid);
 
 static void sys_time(time_t * s);
 static void sys_copymem(uint64_t address, uint8_t * buffer, uint64_t length);
@@ -46,6 +47,8 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
         case 9:
             sys_get_mem_state(rdi);
             break;
+        case 10:
+            return sys_waitpid((pid_t) rdi);
     }
     return 0;
 }
@@ -86,6 +89,19 @@ static pid_t sys_exec(uint64_t program, unsigned int argc, char * argv[]){
 
 static void sys_exit(int return_value){
     terminate_process(return_value);
+}
+
+static pid_t sys_waitpid(pid_t pid) {
+    PCB * process_pcb = get_process(pid);
+    if (process_pcb == NULL) {
+        return -1;
+    }
+
+    pid_t current_pid = get_current_pid();
+    enqueue_pid(process_pcb->blocked_queue, current_pid);
+    block_process(current_pid);
+
+    return pid;
 }
 
 static void sys_time(time_t * s){

@@ -3,6 +3,7 @@ GLOBAL sys_read
 GLOBAL sys_getregs
 GLOBAL sys_exit
 GLOBAL exec
+GLOBAL waitpid
 GLOBAL sys_time
 GLOBAL sys_copymem
 GLOBAL inv_opcode
@@ -52,6 +53,15 @@ exec:
     mov rax, 3
     int 80h
     
+    leave
+    ret
+
+waitpid:
+    enter 0,0
+
+    mov rax, 10
+    int 80h
+
     leave
     ret
 

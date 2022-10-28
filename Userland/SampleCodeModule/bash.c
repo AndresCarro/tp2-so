@@ -29,7 +29,8 @@ int readInput(){
     }else{
         pm fun = commandLine(buffer);
         if(fun != NULL){
-            exec((uint64_t) fun, 0, NULL);
+            pid_t pid = exec((uint64_t) fun, 0, NULL);
+            waitpid(pid);
         }
     }
     //etc, para los distintos comandos a implementar

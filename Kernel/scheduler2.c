@@ -27,6 +27,37 @@ void scheduler_init() {
     process_ready_count--;
 }
 
+PCB * get_process(pid_t pid) {
+    Node * current = active;
+    Node * previous = NULL;
+    while(current != NULL) {
+        if(current->process.pid == pid) {
+            return &(current->process);
+        } else {
+            previous = current;
+            current = current->next;
+        }
+    }
+    current = expired;
+    previous = NULL;
+    while(current != NULL) {
+        if(current->process.pid == pid) {
+            return &(current->process);
+        } else {
+            previous = current;
+            current = current->next;
+        }
+    }
+    return NULL;
+}
+
+pid_t get_current_pid() {
+    if (active != NULL) {
+        return active->process.pid;
+    }
+    return -1;
+}
+
 void unblock_process(pid_t process_pid) {
     Node * current = active;
     Node * previous = NULL;
@@ -101,6 +132,7 @@ pid_t create_process(uint64_t rip, int argc, char * argv[]) {
     new_process->process.priority = DEF_PRIORITY;
     new_process->process.quantums_left = priorities[DEF_PRIORITY];
     new_process->process.status = READY;
+    new_process->process.blocked_queue = new_blocked_queue();
     // ; Creamos el stack "simulado" del proceso para que el scheduler
     // ; pueda tomar el programa y correrlo
     // ; rdi -> entryPoint, el puntero a funcion rip
@@ -281,6 +313,12 @@ uint64_t context_switch(uint64_t rsp) {
 
 int terminate_process(int return_value){
     Node * current_process = active;
+
+    pid_t blocked_pid;
+    while ((blocked_pid = dequeue_pid(current_process->process.blocked_queue)) != -1) {
+        unblock_process(blocked_pid);
+    }
+
     active = current_process->next;
     process_ready_count--;
     memory_manager_free(current_process->process.stack_base);
@@ -294,5 +332,4 @@ int terminate_process(int return_value){
 //         return -1;
 //     }
 //     active->priority = priority_value;
-    
 // }
