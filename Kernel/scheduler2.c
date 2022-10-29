@@ -134,6 +134,7 @@ pid_t create_process(uint64_t rip, int argc, char * argv[]) {
     new_process->process.status = READY;
     new_process->process.blocked_queue = new_blocked_queue();
     new_process->process.new_priority = -1;
+    new_process->process.last_fd = 0;
     // ; Creamos el stack "simulado" del proceso para que el scheduler
     // ; pueda tomar el programa y correrlo
     // ; rdi -> entryPoint, el puntero a funcion rip

@@ -179,16 +179,16 @@ static uint8_t pressed(uint16_t scancode, uint16_t key)
   return 0;
 }
 
-static char translate(uint16_t key)
-{
-  if (capsLock && !shift)
+static char translate(uint16_t key) {
+  if (capsLock && !shift) {
     return capKeys[key];
-  else if (capsLock && shift)
+  } else if (capsLock && shift) {
     return shiftCapKeys[key];
-  else if (!capsLock && !shift)
+  } else if (!capsLock && !shift) {
     return keys[key];
-  else
+  } else {
     return shiftedKeys[key];
+  }
 }
 
 static void add(char key)

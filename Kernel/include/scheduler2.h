@@ -5,6 +5,7 @@
 #include <memory_manager.h>
 #include <stdint.h>
 #include <defs.h>
+#include <fd.h>
 
 #define TOT_PRIORITIES 9
 #define DEF_PRIORITY 5
@@ -18,6 +19,8 @@ typedef struct {
     uint64_t stack_base;
     int new_priority;
     BlockedQueueADT blocked_queue;
+    fd_t file_desciptors[MAX_FDS];
+    unsigned int last_fd;
 } PCB;
 
 typedef struct node{
