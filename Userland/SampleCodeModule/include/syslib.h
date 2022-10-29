@@ -22,6 +22,8 @@ typedef struct {
     uint8_t hours, minutes, seconds;
 } time_t;
 
+typedef uint64_t sem_t;
+
 int sys_write(int fd, const char *buffer, int size);
 int sys_read(int fd,char * buffer,int size);
 void sys_time(time_t * time);
@@ -34,6 +36,11 @@ void sys_copymem(uint64_t address, uint8_t * buffer, uint64_t length);
 pid_t exec(uint64_t program, unsigned int argc, char * argv[]);
 pid_t waitpid(pid_t pid);
 int nice(int new_priority);
+
+sem_t sem_open(char * name, int initial_value);
+void sem_close(sem_t sem);
+int sem_wait(sem_t sem);
+int sem_post(sem_t sem);
 
 unsigned int strlen(const char *s);
 void excepDivZero();

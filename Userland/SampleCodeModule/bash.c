@@ -46,18 +46,22 @@ void unknownCommand(){
 }
 
 void test_nice2() {
-    nice(8);
-    while (1) {
-        putChar('B');
+    sem_t sem = sem_open("prueba", 0);
+    for (int i = 0; i < 100; i++) {
+		putChar('B');
+		if (i == 50) {
+			sem_post(sem);
+		}
         halt();
     }
 }
 
 void test_nice() {
     exec((uint64_t) test_nice2, 0, NULL);
-    nice(0);
+    sem_t sem = sem_open("prueba", 0);
+	sem_wait(sem);
     while (1) {
-        putChar('A');
+        putChar('C');
         halt();
     }
 }

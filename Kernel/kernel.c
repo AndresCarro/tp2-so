@@ -47,30 +47,30 @@ void * initializeKernelBinary() {
 	return getStackBase();
 }
 
-void dummy2() {
-	sem_t sem = sem_open("prueba", 0);
-	_cli();
-	sem_wait(sem);
-	_sti();
-	while(1) {
-		ncPrint("C");
-		_hlt();
-	}
-}
+// void dummy2() {
+// 	sem_t sem = sem_open("prueba", 0);
+// 	// _cli();
+// 	sem_wait(sem);
+// 	// _sti();
+// 	while(1) {
+// 		ncPrint("C");
+// 		_hlt();
+// 	}
+// }
 
-void dummy3() {
-	sem_t sem = sem_open("prueba", 0);
-	for (int i = 0; i < 100; i++) {
-		ncPrint("B");
-		ncPrintDec(i);
-		if (i == 50) {
-			_cli();
-			sem_post(sem);
-			_sti();
-		}
-		_hlt();
-	}
-}
+// void dummy3() {
+// 	sem_t sem = sem_open("prueba", 0);
+// 	for (int i = 0; i < 100; i++) {
+// 		ncPrint("B");
+// 		ncPrintDec(i);
+// 		if (i == 50) {
+// 			// _cli();
+// 			sem_post(sem);
+// 			// _sti();
+// 		}
+// 		_hlt();
+// 	}
+// }
 
 int main() {
 	_cli();
@@ -79,9 +79,9 @@ int main() {
 	load_idt();
 	memory_manager_start((void *) 0xF00000, 0x2000000 - 0xF00000);
 	scheduler_init();
-	// create_process(sampleCodeModuleAddress, 0, NULL);
-	create_process(dummy3, 0, NULL);
-	create_process(dummy2, 0, NULL);
+	create_process(sampleCodeModuleAddress, 0, NULL);
+	// create_process(dummy3, 0, NULL);
+	// create_process(dummy2, 0, NULL);
     _sti();
 
     _hlt();
