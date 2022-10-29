@@ -2,7 +2,6 @@
 #define SEMAPHORE_H
 
 #include <scheduler2.h>
-#include <memory_manager.h>
 #include <blocked_queue.h>
 #include <stdint.h>
 #include <lib.h>

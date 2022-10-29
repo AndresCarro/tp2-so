@@ -12,6 +12,14 @@ Pipe * pipe_open() {
     return pipe;
 }
 
+void pipe_inherited(Pipe * pipe, char for_write) {
+    if (for_write) {
+        pipe->open_for_write++;
+    } else {
+        pipe->open_for_read++;
+    }
+}
+
 void pipe_close(Pipe * pipe, char close_write_end) {
     if (close_write_end) {
         pipe->open_for_write--;

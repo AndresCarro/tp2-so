@@ -94,13 +94,19 @@ static char shiftedKeys[] = {
     0,                            // ScrollLock
     '7', '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.'};
 
-static uint8_t buffer[BUFFER_LENGTH];
-static unsigned int realDim = 0, last = 0;
+// static uint8_t buffer[BUFFER_LENGTH];
+static Pipe * keyboard_pipe = NULL;
+// static unsigned int realDim = 0, last = 0;
 static int shift = 0, capsLock = 0, control = 0, alt = 0;
 
 static void add(char key);
 static char translate(uint16_t key);
 static uint8_t pressed(uint16_t scancode, uint16_t key);
+
+Pipe * keyboard_init() {
+  keyboard_pipe = pipe_open();
+  return keyboard_pipe;
+}
 
 void keyboard_handler(uint64_t * registers)
 {
@@ -108,29 +114,28 @@ void keyboard_handler(uint64_t * registers)
     return;
   uint16_t scancode = read_port(0x60);
   uint16_t key = scancode & 0x7F;
-  if (pressed(scancode, key))
-  {
-    if (control){
-      switch (key)
-      {
-      case 0x26:  //Ctrl+L(26) = Pause left window
-        changeStatus(0);
-        break;
-      case 0x13:  //Ctrl+R(13) = Pause right window
-        changeStatus(1);
-        break;
-      case 0x12:   //Ctrl+E = Terminate both tasks
-        terminateTasks();
-        break;
-      case 0x2e:  //Ctrl+C = copy registers
-        setRegisters(registers);
-        break;
-      default:
-        break;
-      }
-    } else {
+  if (pressed(scancode, key)) {
+    // if (control){
+    //   switch (key)
+    //   {
+    //   case 0x26:  //Ctrl+L(26) = Pause left window
+    //     changeStatus(0);
+    //     break;
+    //   case 0x13:  //Ctrl+R(13) = Pause right window
+    //     changeStatus(1);
+    //     break;
+    //   case 0x12:   //Ctrl+E = Terminate both tasks
+    //     terminateTasks();
+    //     break;
+    //   case 0x2e:  //Ctrl+C = copy registers
+    //     setRegisters(registers);
+    //     break;
+    //   default:
+    //     break;
+    //   }
+    // } else {
       add(translate(key));
-    }
+    // }
   }
 }
 
@@ -191,36 +196,35 @@ static char translate(uint16_t key) {
   }
 }
 
-static void add(char key)
-{
-  buffer[realDim++] = key;
-  if (realDim + 1 == BUFFER_LENGTH)
-  {
-    realDim = 0;
-    last = 0;
-  }
+static void add(char key) {
+  char str[1] = {key};
+  pipe_write(keyboard_pipe, str, 1);
+  // buffer[realDim++] = key;
+  // if (realDim + 1 == BUFFER_LENGTH)
+  // {
+  //   realDim = 0;
+  //   last = 0;
+  // }
 }
 
-uint64_t readBuffer(char *output, uint64_t count)
-{
-  uint64_t i = 0;
-  for (; i < count && last < realDim && last < BUFFER_LENGTH; i++)
-  {
-    output[i] = buffer[last++];
-  }
-  if (last == BUFFER_LENGTH)
-  {
-    realDim = last = 0;
-  }
+uint64_t readBuffer(char *output, uint64_t count) {
+  // uint64_t i = 0;
+  // for (; i < count && last < realDim && last < BUFFER_LENGTH; i++)
+  // {
+  //   output[i] = buffer[last++];
+  // }
+  // if (last == BUFFER_LENGTH)
+  // {
+  //   realDim = last = 0;
+  // }
 
-  _sti();
-  while (i < count)
-  {
-    if (last < realDim){
-      output[i++] = buffer[last++];
-    }
-  }
-  _cli();
-
-  return i;
+  // _sti();
+  // while (i < count)
+  // {
+  //   if (last < realDim){
+  //     output[i++] = buffer[last++];
+  //   }
+  // }
+  // _cli();
+  return pipe_read(keyboard_pipe, output, count);
 } 

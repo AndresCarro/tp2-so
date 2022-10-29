@@ -77,34 +77,49 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
     return 0;
 }
 
-static uint64_t sys_read(unsigned int fd,char* output, uint64_t count){
-    switch (fd)
-    {
-    case STDIN:
-        return readBuffer(output, count);
-        break;
-    
-    default:
-        return 0;
+static uint64_t sys_read(unsigned int fd, char * output, uint64_t count){
+    PCB * pcb = get_process(get_current_pid());
+    fd_t * table = pcb->file_desciptors;
+    unsigned int last_fd = pcb->last_fd;
+
+    if (fd >= last_fd || table[fd].mode != READ) {
+        return -1;
     }
+    return pipe_read(table[fd].pipe, output, count);
 }
 
-static void sys_write(unsigned fd,const char* buffer, uint64_t count){
-    uint64_t i = 0;
-    while (i < count)
-    {
-        switch(fd){
-            case STDOUT:
-                ncPrintChar(buffer[i]);
-                break;
-            case STDERR:
-                ncPrintCharFormat(buffer[i], ERROR_FORMAT);
-                break;
-            default:
-                return;
-        }
-        i++;
+static void sys_write(unsigned fd, const char * buffer, uint64_t count){
+    PCB * pcb = get_process(get_current_pid());
+    fd_t * table = pcb->file_desciptors;
+    unsigned int last_fd = pcb->last_fd;
+
+    if (fd >= last_fd || table[fd].mode != WRITE) {
+        return;
     }
+
+    if (fd == STDOUT) {
+        for (int i = 0; i < count; i++) {
+            ncPrintChar(buffer[i]);
+        }
+        return;
+    }
+    return pipe_write(table[fd].pipe, buffer, count);
+    
+    // uint64_t i = 0;
+    // while (i < count)
+    // {
+    //     switch(fd){
+    //         case STDOUT:
+    //             ncPrintChar(buffer[i]);
+    //             break;
+    //         case STDERR:
+    //             ncPrintCharFormat(buffer[i], ERROR_FORMAT);
+    //             break;
+    //         default:
+    //             return;
+    //     }
+    //     i++;
+    // }
 }
 
 static pid_t sys_exec(uint64_t program, unsigned int argc, char * argv[]){

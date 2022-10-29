@@ -20,8 +20,13 @@ void bash() {
     }
 }
 
+void prueba1() {
+    
+}
+
 int readInput(){
     int sizeRead = gets(buffer);
+    prueba1();
     if(strcmp(buffer,"exit") == 0){
         puts("\nGoodbye\n");
         return -1;

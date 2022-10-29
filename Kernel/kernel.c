@@ -6,6 +6,7 @@
 #include <memory_manager.h>
 #include <scheduler2.h>
 #include <semaphore.h>
+#include <keyboardDriver.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -78,7 +79,8 @@ int main() {
     ncClear();
 	load_idt();
 	memory_manager_start((void *) 0xF00000, 0x2000000 - 0xF00000);
-	scheduler_init();
+	Pipe * stdin = keyboard_init();
+	scheduler_init(stdin);
 	create_process(sampleCodeModuleAddress, 0, NULL);
 	// create_process(dummy3, 0, NULL);
 	// create_process(dummy2, 0, NULL);
