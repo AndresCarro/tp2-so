@@ -17,7 +17,7 @@ pid_t dummy_process_pid = NULL;
 
 void dummy_process() {
     while (1) {
-        ncPrint("A");
+        // ncPrint("A");
         _hlt();
     }
 }

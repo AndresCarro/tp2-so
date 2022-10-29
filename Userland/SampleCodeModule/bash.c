@@ -20,13 +20,14 @@ void bash() {
     }
 }
 
-void prueba1() {
-    
-}
+/*
+PROCESO PADRE -> EXEC A PROCESO INTERMEDIO
+PROCESO INTERMEDIO -> DUP -> EXEC A PROCESO HIJO -> EXIT()
+PROCESO HIJO -> CORRE
+*/
 
 int readInput(){
     int sizeRead = gets(buffer);
-    prueba1();
     if(strcmp(buffer,"exit") == 0){
         puts("\nGoodbye\n");
         return -1;
@@ -71,6 +72,36 @@ void test_nice() {
     }
 }
 
+void test_pipe_2() {
+    while (1) {
+        puts("\nPipe 2 dice < ");
+        char c = getChar();
+        putChar(c);
+        puts(">");
+    }
+}
+
+void dup_handler(int argc, char * argv[]) {
+    int k = atoi(argv[0]);
+    dup2(k, STDIN);
+    exec(test_pipe_2, 0, NULL);
+}
+
+void test_pipe() {
+    int fds[2];
+    pipe(fds);
+    dup2(fds[1], STDOUT);
+
+    char str[2];
+    itoa(fds[0],str);
+    char * argv[] = {str};
+
+    exec((uint64_t) dup_handler, 1, argv);
+    while (1) {
+        putChar('B');
+    }
+}
+
 pm commandLine(char* buffer){
     if(strcmp(buffer,"time") == 0){
         putChar('\n');
@@ -103,6 +134,9 @@ pm commandLine(char* buffer){
     } else if (strcmp(buffer, "test_nice") == 0) {
         putChar('\n');
         return (pm) test_nice;
+    }  else if (strcmp(buffer, "test_pipes") == 0) {
+        putChar('\n');
+        return (pm) test_pipe;
     }
     return NULL;
 }

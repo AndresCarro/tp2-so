@@ -20,7 +20,8 @@ static sem_t sys_sem_open(char * name, int initial_value);
 static void sys_sem_close(sem_t sem);
 static int sys_sem_wait(sem_t sem);
 static int sys_sem_post(sem_t sem);
-
+static int sys_pipe(int fds[]);
+static void sys_dup2(int old, int new);
 
 uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rax, uint64_t * registers){
     switch(rax){
@@ -72,7 +73,12 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
         case 15:
             return sys_sem_post((sem_t) rdi);
             break;
-            
+        case 16:
+            return sys_pipe((int *) rdi);
+            break;
+        case 17:
+            sys_dup2((int) rdi, (int) rsi);
+            break;
     }
     return 0;
 }
@@ -97,29 +103,13 @@ static void sys_write(unsigned fd, const char * buffer, uint64_t count){
         return;
     }
 
-    if (fd == STDOUT) {
+    if (fd == STDOUT && table[fd].pipe == NULL) {
         for (int i = 0; i < count; i++) {
             ncPrintChar(buffer[i]);
         }
         return;
     }
     return pipe_write(table[fd].pipe, buffer, count);
-    
-    // uint64_t i = 0;
-    // while (i < count)
-    // {
-    //     switch(fd){
-    //         case STDOUT:
-    //             ncPrintChar(buffer[i]);
-    //             break;
-    //         case STDERR:
-    //             ncPrintCharFormat(buffer[i], ERROR_FORMAT);
-    //             break;
-    //         default:
-    //             return;
-    //     }
-    //     i++;
-    // }
 }
 
 static pid_t sys_exec(uint64_t program, unsigned int argc, char * argv[]){
@@ -186,4 +176,38 @@ static int sys_sem_wait(sem_t sem) {
 
 static int sys_sem_post(sem_t sem) {
     return sem_post(sem);
+}
+
+static int sys_pipe(int fds[]) {
+    PCB * pcb = get_process(get_current_pid());
+    fd_t * table = pcb->file_desciptors;
+    unsigned int last_fd = pcb->last_fd;
+
+    if (last_fd + 2 > MAX_FDS) {
+        return -1;
+    }
+
+    Pipe * new_pipe = pipe_open();
+    table[last_fd].mode = READ;
+    table[last_fd].pipe = new_pipe;
+    fds[0] = last_fd;
+    last_fd++;
+    table[last_fd].mode = WRITE;
+    table[last_fd].pipe = new_pipe;
+    fds[1] = last_fd;
+    last_fd++;
+
+    return 0;
+}
+
+static void sys_dup2(int old, int new) {
+    PCB * pcb = get_process(get_current_pid());
+    fd_t * table = pcb->file_desciptors;
+    unsigned int last_fd = pcb->last_fd;
+
+    if (old >= last_fd || new >= last_fd || table[old].mode == CLOSED || table[new].mode == CLOSED) {
+        return;
+    }
+    table[new].mode = table[old].mode;
+    table[new].pipe = table[old].pipe;
 }

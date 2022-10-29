@@ -42,6 +42,9 @@ void sem_close(sem_t sem);
 int sem_wait(sem_t sem);
 int sem_post(sem_t sem);
 
+int pipe(int pipefds[]);
+void dup2(int oldfd, int newfd);
+
 unsigned int strlen(const char *s);
 void excepDivZero();
 void excepInvalidOpcode();
@@ -59,7 +62,7 @@ void fibonacciNumbs();
 void printmem();
 void inforeg();
 uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base);
-
-void create_process();
+int atoi(char * str);
+void itoa(int n, char s[]);
 
 #endif
