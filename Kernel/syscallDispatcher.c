@@ -2,6 +2,7 @@
 #include <defs.h>
 #include <scheduler2.h>
 #include <memory_manager.h>
+#include <semaphore.h>
 
 static uint64_t sys_read(unsigned int fd, char* output, uint64_t count);
 static void sys_write(unsigned fd, const char* buffer, uint64_t count);
@@ -15,6 +16,11 @@ static void sys_copymem(uint64_t address, uint8_t * buffer, uint64_t length);
 static void * sys_malloc(uint64_t size);
 static void sys_free(uint64_t ptr);
 static void sys_get_mem_state(uint64_t memory_state);
+static sem_t sys_sem_open(char * name, int initial_value);
+static void sys_sem_close(sem_t sem);
+static int sys_sem_wait(sem_t sem);
+static int sys_sem_post(sem_t sem);
+
 
 uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rax, uint64_t * registers){
     switch(rax){
@@ -50,8 +56,23 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
             break;
         case 10:
             return sys_waitpid((pid_t) rdi);
+            break;
         case 11:
             return sys_nice((int) rdi);
+            break;
+        case 12:
+            return sys_sem_open((char *) rdi, (int) rsi);
+            break;
+        case 13:
+            sys_sem_close((sem_t) rdi);
+            break;
+        case 14:
+            return sys_sem_wait((sem_t) rdi);
+            break;
+        case 15:
+            return sys_sem_post((sem_t) rdi);
+            break;
+            
     }
     return 0;
 }
@@ -134,4 +155,20 @@ static void sys_free(uint64_t ptr) {
 
 static void sys_get_mem_state(uint64_t memory_state) {
     memory_manager_get_state((Memory_State *)memory_state);
+}
+
+static sem_t sys_sem_open(char * name, int initial_value) {
+    return sem_open(name, initial_value);
+}
+
+static void sys_sem_close(sem_t sem) {
+    sem_close(sem);
+}
+
+static int sys_sem_wait(sem_t sem) {
+    return sem_wait(sem);
+}
+
+static int sys_sem_post(sem_t sem) {
+    return sem_post(sem);
 }

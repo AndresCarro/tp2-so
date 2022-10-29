@@ -9,7 +9,10 @@ GLOBAL sys_time
 GLOBAL sys_copymem
 GLOBAL inv_opcode
 GLOBAL div_zero
-GLOBAL sys_create
+GLOBAL sem_open
+GLOBAL sem_close
+GLOBAL sem_wait
+GLOBAL sem_post
 
 GLOBAL halt
 
@@ -99,15 +102,6 @@ sys_copymem:
     pop rbp
     ret
 
-sys_create:
-    push rbp
-    mov rbp,rsp
-    mov rax,10
-    int 0x80
-    mov rsp,rbp
-    pop rbp
-    ret
-
 inv_opcode:
     ud2
     ret
@@ -115,4 +109,40 @@ inv_opcode:
 div_zero:
     mov ecx, 0
     div ecx
+    ret
+
+sem_open:
+    enter 0,0
+
+    mov rax, 12
+    int 80h
+
+    leave
+    ret
+
+sem_close:
+    enter 0,0
+
+    mov rax, 13
+    int 80h
+
+    leave
+    ret
+
+sem_wait:
+    enter 0,0
+
+    mov rax, 14
+    int 80h
+
+    leave
+    ret
+
+sem_post:
+    enter 0,0
+
+    mov rax, 15
+    int 80h
+
+    leave
     ret

@@ -20,5 +20,6 @@ BlockedQueueADT new_blocked_queue();
 pid_t dequeue_pid(BlockedQueueADT queue);
 void enqueue_pid(BlockedQueueADT queue, pid_t pid);
 void free_queue(BlockedQueueADT queue);
+int is_empty(BlockedQueueADT queue);
 
 #endif
