@@ -72,8 +72,13 @@ void test_nice() {
     }
 }
 
+void prueba() {
+
+}
+
 void test_pipe_2() {
     while (1) {
+        prueba();
         puts("\nPipe 2 dice < ");
         char c = getChar();
         putChar(c);
@@ -90,14 +95,16 @@ void dup_handler(int argc, char * argv[]) {
 void test_pipe() {
     int fds[2];
     pipe(fds);
-    dup2(fds[1], STDOUT);
 
     char str[2];
     itoa(fds[0],str);
     char * argv[] = {str};
 
     exec((uint64_t) dup_handler, 1, argv);
+    
+    dup2(fds[1], STDOUT);
     while (1) {
+        prueba();
         putChar('B');
     }
 }

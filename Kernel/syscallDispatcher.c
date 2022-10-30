@@ -197,6 +197,8 @@ static int sys_pipe(int fds[]) {
     fds[1] = last_fd;
     last_fd++;
 
+    pcb->last_fd = last_fd;
+
     return 0;
 }
 
