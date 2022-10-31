@@ -1,5 +1,7 @@
 #include <pipe.h>
 
+PipeList pipes = NULL;
+
 Pipe * pipe_open() {
     Pipe * pipe = memory_manager_alloc(sizeof(Pipe));
     pipe->read_offset = 0;
@@ -8,6 +10,15 @@ Pipe * pipe_open() {
     pipe->open_for_write = 1;
     pipe->blocked_in_read = new_blocked_queue();
     pipe->blocked_in_write = new_blocked_queue();
+
+    PipeList new_pipe = memory_manager_alloc(sizeof(PipeNode));
+    new_pipe->p = pipe;
+    if (pipes == NULL) {
+        new_pipe->next = NULL;
+    } else {
+        new_pipe->next = pipes;
+    }
+    pipes = new_pipe;
 
     return pipe;
 }
@@ -28,6 +39,18 @@ void pipe_close(Pipe * pipe, char close_write_end) {
     }
     
     if (pipe->open_for_read == 0 && pipe->open_for_write == 0) {
+        PipeList current = pipes;
+        PipeList previous = NULL;
+        while (current != NULL && current->p != pipe) {
+            previous = current;
+            current = current->next;
+        }
+        if (previous == NULL) {
+            pipes = pipes->next;
+        } else {
+            previous->next = current->next;
+        }
+        memory_manager_free(current);
         memory_manager_free(pipe);
     }
 }
@@ -72,4 +95,24 @@ int pipe_read(Pipe * p, char * str, int length) {
         unblock_process(pid);
     }
     return i;
+}
+
+PipeInfo * pipe_info() {
+    PipeList current = pipes;
+    PipeInfo * info = NULL;
+    while (current != NULL) {
+        PipeInfo * new_info = memory_manager_alloc(sizeof(PipeInfo));
+        if (current->p->write_offset != current->p->read_offset) {
+            new_info->available_space = (PIPESIZE - current->p->write_offset + current->p->read_offset) % PIPESIZE;
+        } else {
+            new_info->available_space = PIPESIZE;
+        }
+        new_info->left_to_read = (PIPESIZE - current->p->read_offset + current->p->write_offset) % PIPESIZE;
+        new_info->open_for_read = current->p->open_for_read;
+        new_info->open_for_write = current->p->open_for_write;
+        new_info->next = info;
+        info = new_info;
+        current = current->next;
+    }
+    return info;
 }

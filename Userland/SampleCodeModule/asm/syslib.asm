@@ -16,6 +16,7 @@ GLOBAL sem_post
 GLOBAL pipe
 GLOBAL dup2
 GLOBAL close
+GLOBAL pipe_info
 
 GLOBAL halt
 
@@ -172,6 +173,15 @@ close:
     enter 0,0
 
     mov rax, 18
+    int 80h
+
+    leave
+    ret
+
+pipe_info:
+    enter 0,0
+
+    mov rax, 19
     int 80h
 
     leave

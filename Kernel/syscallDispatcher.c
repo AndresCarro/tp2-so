@@ -23,6 +23,7 @@ static int sys_sem_post(sem_t sem);
 static int sys_pipe(int fds[]);
 static void sys_dup2(int old, int new);
 static void sys_close(int fd);
+static PipeInfo * sys_get_pipe_info();
 
 uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rax, uint64_t * registers){
     switch(rax){
@@ -82,6 +83,9 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
             break;
         case 18:
             sys_close((int) rdi);
+            break;
+        case 19:
+            return sys_get_pipe_info();
             break;
     }
     return 0;
@@ -252,7 +256,7 @@ static void sys_close(int fd) {
     fd_t * table = pcb->file_desciptors;
     unsigned int last_fd = pcb->last_fd;
 
-    if (fd >= last_fd) {
+    if (fd >= last_fd || table[fd].mode == CLOSED) {
         return;
     }
 
@@ -261,9 +265,13 @@ static void sys_close(int fd) {
     }
     table[fd].mode = CLOSED;
 
-    while (table[last_fd - 1].mode == CLOSED) {
+    while (last_fd > 0 && table[last_fd - 1].mode == CLOSED) {
         last_fd--;
     }
     
     pcb->last_fd = last_fd;
+}
+
+static PipeInfo * sys_get_pipe_info() {
+    return pipe_info();
 }

@@ -122,6 +122,21 @@ void test_close() {
     }
 }
 
+void test_pipe_info() {
+    int fds1[2];
+    int fds2[2];
+    pipe(fds1);
+    pipe(fds2);
+    sys_write(fds1[1], "HOLA HOLA HOLA", 14);
+    close(fds2[0]);
+
+    PipeInfo * info = pipe_info();
+    while (info != NULL) {
+        fprintf(STDOUT, "Avail: %d; Left: %d, Open Read: %d, Open Write: %d\n", info->available_space, info->left_to_read, info->open_for_read, info->open_for_write);
+        info = info->next;
+    }
+}
+
 pm commandLine(char* buffer){
     if(strcmp(buffer,"time") == 0){
         putChar('\n');
@@ -160,6 +175,9 @@ pm commandLine(char* buffer){
     } else if (strcmp(buffer, "test_close") == 0) {
         putChar('\n');
         return (pm) test_close;
+    } else if (strcmp(buffer, "test_pipe_info") == 0) {
+        putChar('\n');
+        return (pm) test_pipe_info;
     }
     return NULL;
 }

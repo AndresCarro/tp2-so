@@ -1,4 +1,5 @@
 #include <syslib.h>
+#include <stdarg.h>
 
 unsigned int strlen(const char *str){
     unsigned int len = 0;
@@ -345,3 +346,42 @@ int atoi(char * str) {
         res = res * 10 + str[i] - '0';
     return res;
 }
+
+void strcpy(char * dest, char * src) {
+	unsigned int len = strlen(src);
+    int i;
+	for (i = 0; i < len; i++) {
+        dest[i] = src[i];
+    }
+    dest[i] = 0;
+}
+
+void fprintf(int fd, char * str, ...) {
+    va_list vl;
+	int i = 0, j=0;
+    char buff[100]={0}, tmp[20];
+    va_start( vl, str ); 
+
+    while (str && str[i]) {
+        if(str[i] == '%') {
+            i++;
+            switch (str[i]) {
+                case 'c': 
+                    buff[j] = (char)va_arg( vl, int );
+                    j++;
+                    break;
+                case 'd': 
+                    itoa(va_arg( vl, int ), tmp);
+                    strcpy(&buff[j], tmp);
+                    j += strlen(tmp);
+                    break;
+            }
+        } else {
+            buff[j] = str[i];
+            j++;
+        }
+        i++;
+    }
+    va_end(vl);
+    sys_write(fd, buff, j);
+ }

@@ -3,6 +3,7 @@
 
 #include <defs.h>
 #include <stdint.h>
+#include <general_info.h>
 
 #define NULL (void*)0
 
@@ -65,5 +66,9 @@ void inforeg();
 uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base);
 int atoi(char * str);
 void itoa(int n, char s[]);
+
+void fprintf(int fd, char * str, ...);
+
+PipeInfo * pipe_info();
 
 #endif
