@@ -137,6 +137,25 @@ void test_pipe_info() {
     }
 }
 
+void test_sem_info_2() {
+    sem_t sem = sem_open("prueba", 0);
+    sem_t sem2 = sem_open("prueba2", 3);
+    sem_post(sem2);
+    
+    SemInfo * info = sem_info();
+    while (info != NULL) {
+        fprintf(STDOUT, "Name: %s, Value: %d, Blocked Processes: %d, Linked Processes: %d\n", info->name, info->value, info->blocked_processes, info->linked_processes);
+        info = info->next;
+    }
+    sem_post(sem);
+}
+
+void test_sem_info() {
+    exec((uint64_t) test_sem_info_2, 0, NULL);
+    sem_t sem = sem_open("prueba", 0);
+	sem_wait(sem);
+}
+
 pm commandLine(char* buffer){
     if(strcmp(buffer,"time") == 0){
         putChar('\n');
@@ -178,6 +197,9 @@ pm commandLine(char* buffer){
     } else if (strcmp(buffer, "test_pipe_info") == 0) {
         putChar('\n');
         return (pm) test_pipe_info;
+    } else if (strcmp(buffer, "test_sem_info") == 0) {
+        putChar('\n');
+        return (pm) test_sem_info;
     }
     return NULL;
 }

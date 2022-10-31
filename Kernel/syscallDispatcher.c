@@ -24,6 +24,7 @@ static int sys_pipe(int fds[]);
 static void sys_dup2(int old, int new);
 static void sys_close(int fd);
 static PipeInfo * sys_get_pipe_info();
+static SemInfo * sys_get_sem_info();
 
 uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rax, uint64_t * registers){
     switch(rax){
@@ -86,6 +87,9 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
             break;
         case 19:
             return sys_get_pipe_info();
+            break;
+        case 20:
+            return sys_get_sem_info();
             break;
     }
     return 0;
@@ -274,4 +278,8 @@ static void sys_close(int fd) {
 
 static PipeInfo * sys_get_pipe_info() {
     return pipe_info();
+}
+
+static SemInfo * sys_get_sem_info() {
+    return sem_info();
 }

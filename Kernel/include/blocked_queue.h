@@ -12,6 +12,7 @@ typedef struct blockednode {
 typedef struct {
     BlockedNode * first;
     BlockedNode * last;
+    unsigned int qty;
 } BlockedQueueCDT;
 
 typedef BlockedQueueCDT * BlockedQueueADT;
@@ -21,5 +22,6 @@ pid_t dequeue_pid(BlockedQueueADT queue);
 void enqueue_pid(BlockedQueueADT queue, pid_t pid);
 void free_queue(BlockedQueueADT queue);
 int is_empty(BlockedQueueADT queue);
+unsigned int get_blocked_qty(BlockedQueueADT queue);
 
 #endif

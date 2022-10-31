@@ -1,6 +1,8 @@
 #ifndef GENERAL_INFO_H
 #define GENERAL_INFO_H
 
+#include <stdint.h>
+
 typedef struct pcbinfo {
 
 } PCBInfo;
@@ -14,8 +16,13 @@ typedef struct pipeinfo {
 } PipeInfo;
 
 typedef struct seminfo {
-    
+    char * name;
+    uint8_t value;
+    unsigned int linked_processes;
+    unsigned int blocked_processes;
+    struct seminfo * next;
 } SemInfo;
+
 
 typedef struct meminfo {
 

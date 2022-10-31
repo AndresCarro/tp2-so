@@ -17,6 +17,7 @@ GLOBAL pipe
 GLOBAL dup2
 GLOBAL close
 GLOBAL pipe_info
+GLOBAL sem_info
 
 GLOBAL halt
 
@@ -182,6 +183,15 @@ pipe_info:
     enter 0,0
 
     mov rax, 19
+    int 80h
+
+    leave
+    ret
+
+sem_info:
+    enter 0,0
+
+    mov rax, 20
     int 80h
 
     leave

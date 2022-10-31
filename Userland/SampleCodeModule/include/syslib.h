@@ -70,5 +70,6 @@ void itoa(int n, char s[]);
 void fprintf(int fd, char * str, ...);
 
 PipeInfo * pipe_info();
+SemInfo * sem_info();
 
 #endif

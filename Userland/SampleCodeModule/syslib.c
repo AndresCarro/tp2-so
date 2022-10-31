@@ -375,6 +375,12 @@ void fprintf(int fd, char * str, ...) {
                     strcpy(&buff[j], tmp);
                     j += strlen(tmp);
                     break;
+                case 's': {
+                    char * str = va_arg( vl, char * );
+                    strcpy(&buff[j], str);
+                    j += strlen(str);
+                    break;
+                }
             }
         } else {
             buff[j] = str[i];
