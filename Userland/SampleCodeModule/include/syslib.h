@@ -44,6 +44,7 @@ int sem_post(sem_t sem);
 
 int pipe(int pipefds[]);
 void dup2(int oldfd, int newfd);
+void close(int fd);
 
 unsigned int strlen(const char *s);
 void excepDivZero();

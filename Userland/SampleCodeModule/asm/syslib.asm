@@ -15,6 +15,7 @@ GLOBAL sem_wait
 GLOBAL sem_post
 GLOBAL pipe
 GLOBAL dup2
+GLOBAL close
 
 GLOBAL halt
 
@@ -162,6 +163,15 @@ dup2:
     enter 0,0
 
     mov rax, 17
+    int 80h
+
+    leave
+    ret
+
+close:
+    enter 0,0
+
+    mov rax, 18
     int 80h
 
     leave

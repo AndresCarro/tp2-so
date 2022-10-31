@@ -109,6 +109,19 @@ void test_pipe() {
     }
 }
 
+void test_close() {
+    int fds1[2];
+    int fds2[2];
+    pipe(fds1);
+    pipe(fds2);
+    close(fds2[1]);
+    int fds3[2];
+    pipe(fds3);
+    if (fds3[0] == fds2[1]) {
+        puts("FUNCIONA");
+    }
+}
+
 pm commandLine(char* buffer){
     if(strcmp(buffer,"time") == 0){
         putChar('\n');
@@ -144,6 +157,9 @@ pm commandLine(char* buffer){
     }  else if (strcmp(buffer, "test_pipes") == 0) {
         putChar('\n');
         return (pm) test_pipe;
+    } else if (strcmp(buffer, "test_close") == 0) {
+        putChar('\n');
+        return (pm) test_close;
     }
     return NULL;
 }

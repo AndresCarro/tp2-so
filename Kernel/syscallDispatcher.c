@@ -22,6 +22,7 @@ static int sys_sem_wait(sem_t sem);
 static int sys_sem_post(sem_t sem);
 static int sys_pipe(int fds[]);
 static void sys_dup2(int old, int new);
+static void sys_close(int fd);
 
 uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rax, uint64_t * registers){
     switch(rax){
@@ -78,6 +79,9 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
             break;
         case 17:
             sys_dup2((int) rdi, (int) rsi);
+            break;
+        case 18:
+            sys_close((int) rdi);
             break;
     }
     return 0;
@@ -183,19 +187,41 @@ static int sys_pipe(int fds[]) {
     fd_t * table = pcb->file_desciptors;
     unsigned int last_fd = pcb->last_fd;
 
-    if (last_fd + 2 > MAX_FDS) {
+    int available = 0;
+    int read_fd = 0;
+    while (available != 1 && read_fd < MAX_FDS && last_fd < MAX_FDS) {
+        if (read_fd == last_fd) {
+            available++;
+            last_fd++;
+        } else if (table[read_fd].mode == CLOSED) {
+            available++;
+        } else {
+            read_fd++;
+        }
+    }
+    int write_fd = read_fd + 1;
+    while (available != 2 && write_fd < MAX_FDS && last_fd < MAX_FDS) {
+        if (write_fd == last_fd) {
+            available++;
+            last_fd++;
+        } else if (table[write_fd].mode == CLOSED) {
+            available++;
+        } else {
+            write_fd++;
+        }
+    }
+
+    if (available != 2) {
         return -1;
     }
 
     Pipe * new_pipe = pipe_open();
-    table[last_fd].mode = READ;
-    table[last_fd].pipe = new_pipe;
-    fds[0] = last_fd;
-    last_fd++;
-    table[last_fd].mode = WRITE;
-    table[last_fd].pipe = new_pipe;
-    fds[1] = last_fd;
-    last_fd++;
+    table[read_fd].mode = READ;
+    table[read_fd].pipe = new_pipe;
+    fds[0] = read_fd;
+    table[write_fd].mode = WRITE;
+    table[write_fd].pipe = new_pipe;
+    fds[1] = write_fd;
 
     pcb->last_fd = last_fd;
 
@@ -212,4 +238,22 @@ static void sys_dup2(int old, int new) {
     }
     table[new].mode = table[old].mode;
     table[new].pipe = table[old].pipe;
+}
+
+static void sys_close(int fd) {
+    PCB * pcb = get_process(get_current_pid());
+    fd_t * table = pcb->file_desciptors;
+    unsigned int last_fd = pcb->last_fd;
+
+    if (fd >= last_fd) {
+        return;
+    }
+
+    table[fd].mode = CLOSED;
+
+    while (table[last_fd - 1].mode == CLOSED) {
+        last_fd--;
+    }
+    
+    pcb->last_fd = last_fd;
 }
