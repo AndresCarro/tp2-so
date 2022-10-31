@@ -1,6 +1,7 @@
 #include <scheduler2.h>
 #include <interrupts.h>
 #include <naiveConsole.h>
+#include <pipe.h>
 
 Queue active = NULL;
 Queue expired = NULL;
@@ -16,13 +17,20 @@ pid_t dummy_process_pid = NULL;
 
 void dummy_process() {
     while (1) {
-        ncPrint("A");
+        // ncPrint("A");
         _hlt();
     }
 }
 
-void scheduler_init() {
+void scheduler_init(Pipe * stdin) {
     dummy_process_pid = create_process(dummy_process, 0, NULL);
+    
+    active->process.last_fd = 2;
+    active->process.file_desciptors[0].mode = READ;
+    active->process.file_desciptors[0].pipe = stdin;
+    active->process.file_desciptors[1].mode = WRITE;
+    active->process.file_desciptors[1].pipe = NULL;
+
     active->process.status = BLOCKED;
     process_ready_count--;
 }
@@ -126,6 +134,14 @@ void block_process(pid_t process_pid) {
     }
 }
 
+void copy_fd_table(fd_t src[], fd_t dest[], unsigned int qty) {
+    for (int i = 0; i < qty; i++) {
+        dest[i].mode = src[i].mode;
+        dest[i].pipe = src[i].pipe;
+        pipe_inherited(dest[i].pipe, dest[i].mode == WRITE ? 1 : 0);
+    }
+}
+
 pid_t create_process(uint64_t rip, int argc, char * argv[]) {
     Node * new_process = memory_manager_alloc(sizeof(Node));
     new_process->process.pid = process_count++;
@@ -134,6 +150,11 @@ pid_t create_process(uint64_t rip, int argc, char * argv[]) {
     new_process->process.status = READY;
     new_process->process.blocked_queue = new_blocked_queue();
     new_process->process.new_priority = -1;
+    if (active != NULL) {
+        new_process->process.last_fd = active->process.last_fd;
+        copy_fd_table(active->process.file_desciptors, new_process->process.file_desciptors, new_process->process.last_fd);
+    }
+    
     // ; Creamos el stack "simulado" del proceso para que el scheduler
     // ; pueda tomar el programa y correrlo
     // ; rdi -> entryPoint, el puntero a funcion rip

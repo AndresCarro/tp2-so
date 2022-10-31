@@ -2,12 +2,22 @@
 #define SCHEDULER_H2
 
 #include <blocked_queue.h>
-#include <memory_manager.h>
+#include <pipe2.h>
 #include <stdint.h>
-#include <defs.h>
 
 #define TOT_PRIORITIES 9
 #define DEF_PRIORITY 5
+
+#define READ 0
+#define WRITE 1
+#define CLOSED 2
+
+#define MAX_FDS 16
+
+typedef struct {
+    unsigned int mode;
+    Pipe * pipe;
+} fd_t;
 
 typedef struct {
     pid_t pid;
@@ -18,6 +28,8 @@ typedef struct {
     uint64_t stack_base;
     int new_priority;
     BlockedQueueADT blocked_queue;
+    fd_t file_desciptors[MAX_FDS];
+    unsigned int last_fd;
 } PCB;
 
 typedef struct node{
@@ -27,7 +39,7 @@ typedef struct node{
 
 typedef Node * Queue;
 
-void scheduler_init();
+void scheduler_init(Pipe * stdin);
 pid_t create_process(uint64_t rip, int argc, char * argv[]);
 int terminate_process(int return_value);
 void block_process(pid_t process_pid);

@@ -11,7 +11,6 @@
 
 #define STDIN 0
 #define STDOUT 1
-#define STDERR 2
 
 typedef struct {
     uint8_t day, month, year;

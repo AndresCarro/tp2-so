@@ -13,6 +13,9 @@ GLOBAL sem_open
 GLOBAL sem_close
 GLOBAL sem_wait
 GLOBAL sem_post
+GLOBAL pipe
+GLOBAL dup2
+GLOBAL close
 
 GLOBAL halt
 
@@ -142,6 +145,33 @@ sem_post:
     enter 0,0
 
     mov rax, 15
+    int 80h
+
+    leave
+    ret
+
+pipe:
+    enter 0,0
+
+    mov rax, 16
+    int 80h
+
+    leave
+    ret
+
+dup2:
+    enter 0,0
+
+    mov rax, 17
+    int 80h
+
+    leave
+    ret
+
+close:
+    enter 0,0
+
+    mov rax, 18
     int 80h
 
     leave
