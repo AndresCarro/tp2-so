@@ -121,6 +121,13 @@ static pid_t sys_exec(uint64_t program, unsigned int argc, char * argv[]){
 }
 
 static void sys_exit(int return_value){
+    PCB * pcb = get_process(get_current_pid());
+    unsigned int last_fd = pcb->last_fd;
+
+    for (int i = 0; i < last_fd; i++) {
+        sys_close(i);
+    }
+
     terminate_process(return_value);
 }
 
@@ -249,6 +256,9 @@ static void sys_close(int fd) {
         return;
     }
 
+    if (table[fd].pipe != NULL) {
+        pipe_close(table[fd].pipe, table[fd].mode == WRITE);
+    }
     table[fd].mode = CLOSED;
 
     while (table[last_fd - 1].mode == CLOSED) {
