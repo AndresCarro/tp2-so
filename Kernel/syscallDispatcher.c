@@ -15,7 +15,7 @@ static void sys_time(time_t * s);
 static void sys_copymem(uint64_t address, uint8_t * buffer, uint64_t length);
 static void * sys_malloc(uint64_t size);
 static void sys_free(uint64_t ptr);
-static void sys_get_mem_state(uint64_t memory_state);
+static MemInfo * sys_get_mem_info();
 static sem_t sys_sem_open(char * name, int initial_value);
 static void sys_sem_close(sem_t sem);
 static int sys_sem_wait(sem_t sem);
@@ -57,7 +57,7 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
             sys_free(rdi);
             break;
         case 9:
-            sys_get_mem_state(rdi);
+            return sys_get_mem_info();
             break;
         case 10:
             return sys_waitpid((pid_t) rdi);
@@ -181,8 +181,8 @@ static void sys_free(uint64_t ptr) {
     memory_manager_free((void *) ptr);
 }
 
-static void sys_get_mem_state(uint64_t memory_state) {
-    memory_manager_get_state((Memory_State *)memory_state);
+static MemInfo * sys_get_mem_info() {
+    return mem_info();
 }
 
 static sem_t sys_sem_open(char * name, int initial_value) {

@@ -381,6 +381,12 @@ void fprintf(int fd, char * str, ...) {
                     j += strlen(str);
                     break;
                 }
+                case 'x': {
+                    uintToBase(va_arg( vl, int ), tmp, 16);
+                    strcpy(&buff[j], tmp);
+                    j += strlen(tmp);
+                    break;
+                }
             }
         } else {
             buff[j] = str[i];

@@ -19,6 +19,7 @@ GLOBAL close
 GLOBAL pipe_info
 GLOBAL sem_info
 GLOBAL process_info
+GLOBAL mem_info
 
 GLOBAL halt
 
@@ -202,6 +203,15 @@ process_info:
     enter 0,0
 
     mov rax, 21
+    int 80h
+
+    leave
+    ret
+
+mem_info:
+    enter 0,0
+
+    mov rax, 9
     int 80h
 
     leave

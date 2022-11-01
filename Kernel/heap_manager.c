@@ -86,9 +86,11 @@ void memory_manager_free(void * ptr){
 }
 
 //Devuelve a traves de Memory_State informacion sobre la memoria.
-void memory_manager_get_state(Memory_State * memory_state){
-    memory_state->memory_total = total_memory;
-    memory_state->memory_occupied = used_memory;
-    memory_state->memory_free = total_memory - used_memory;
-    memory_state->memory_nodes = memory_node_count;
+MemInfo * mem_info() {
+    MemInfo * info = memory_manager_alloc(sizeof(MemInfo));
+    info->memory_total = total_memory;
+    info->memory_occupied = used_memory;
+    info->memory_free = total_memory - used_memory;
+    info->memory_frags = memory_node_count;
+    return info;
 }

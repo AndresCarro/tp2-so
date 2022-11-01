@@ -32,7 +32,10 @@ typedef struct seminfo {
 
 
 typedef struct meminfo {
-
+    uint64_t memory_free;
+    uint64_t memory_occupied;
+    uint64_t memory_total;
+    unsigned int memory_frags;
 } MemInfo;
 
 #endif

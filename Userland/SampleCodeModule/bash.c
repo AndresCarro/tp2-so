@@ -169,9 +169,14 @@ void test_process_info() {
     PCBInfo * info = process_info();
     char * status[] = {"Ready", "Blocked", "Terminated"};
     while (info != NULL) {
-        fprintf(STDOUT, "Name: %s, PID: %d, RSP: %d, RBP: %d, Priority: %d, Status: %s\n", info->name, info->pid, info->rsp, info->rbp, info->priority, status[info->status]);
+        fprintf(STDOUT, "Name: %s, PID: %d, RSP: 0x%x, RBP: 0x%x, Priority: %d, Status: %s\n", info->name, info->pid, info->rsp, info->rbp, info->priority, status[info->status]);
         info = info->next;
     }
+}
+
+void test_mem_info() {
+    MemInfo * info = mem_info();
+    fprintf(STDOUT, "Total: %d, Occupied: %d, Free: %d, Fragments: %d\n", info->memory_total, info->memory_occupied, info->memory_free, info->memory_frags);
 }
 
 pm commandLine(char* buffer){
@@ -221,7 +226,10 @@ pm commandLine(char* buffer){
     } else if (strcmp(buffer, "test_process_info") == 0) {
         putChar('\n');
         return (pm) test_process_info;
-    }
+    } else if (strcmp(buffer, "mem info") == 0) {
+        putChar('\n');
+        return (pm) test_mem_info;
+    } 
     return NULL;
 }
 

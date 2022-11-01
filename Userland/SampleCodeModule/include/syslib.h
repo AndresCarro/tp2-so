@@ -72,5 +72,6 @@ void fprintf(int fd, char * str, ...);
 PipeInfo * pipe_info();
 SemInfo * sem_info();
 PCBInfo * process_info();
+MemInfo * mem_info();
 
 #endif
