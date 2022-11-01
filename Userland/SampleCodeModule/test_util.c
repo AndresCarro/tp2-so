@@ -1,19 +1,19 @@
-#include <stdio.h>
 #include <stdint.h>
-
+#include <syslib.h>
+#define MINOR_WAIT 30000000 // TODO: Change this value to prevent a process from flooding the screen
 //Random
 static uint32_t m_z = 362436069;
 static uint32_t m_w = 521288629;
 
 uint32_t GetUint(){
-  m_z = 36969 * (m_z & 65535) + (m_z >> 16);
-  m_w = 18000 * (m_w & 65535) + (m_w >> 16);
-  return (m_z << 16) + m_w;
+    m_z = 36969 * (m_z & 65535) + (m_z >> 16);
+    m_w = 18000 * (m_w & 65535) + (m_w >> 16);
+    return (m_z << 16) + m_w;
 }
 
 uint32_t GetUniform(uint32_t max){
-  uint32_t u = GetUint();
-  return (u + 1.0) * 2.328306435454494e-10 * max;
+    uint32_t u = GetUint();
+    return (u + 1.0) * 2.328306435454494e-10 * max;
 }
 
 //Memory
@@ -48,11 +48,10 @@ void endless_loop() {
   while(1);
 }
 
-// void endless_loop_print(uint64_t wait){
-//   int64_t pid = my_getpid();
-
-//   while(1){
-//     printf("%d ",pid);
-//     bussy_wait(wait);
-//   }
-// }
+void endless_loop_print(int argc, char * argv[]){
+  pid_t pid = getpid();
+  while(1){
+    fprintf(STDOUT, "%d ",pid);
+    bussy_wait(MINOR_WAIT);
+  }
+}

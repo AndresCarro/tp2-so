@@ -7,7 +7,7 @@
 #include <general_info.h>
 
 #define TOT_PRIORITIES 9
-#define DEF_PRIORITY 5
+#define DEF_PRIORITY 4
 
 #define READ 0
 #define WRITE 1
@@ -51,7 +51,7 @@ int block_process(pid_t process_pid);
 int unblock_process(pid_t process_pid);
 PCB * get_process(pid_t pid);
 pid_t get_current_pid();
-int change_priority(int priority_value);
+int change_priority(pid_t pid, int priority_value);
 
 PCBInfo * process_info();
 

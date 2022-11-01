@@ -276,7 +276,13 @@ pm commandLine(char* buffer){
         char * argv[] = {name};
         pid_t pid = exec((uint64_t) test_block, 1, argv);
         waitpid(pid);
-    } 
+    } else if (strcmp(buffer, "test_prio") == 0) {
+        putChar('\n');
+        char * name = "Priorities aGODio Test";
+        char * argv[] = {name};
+        pid_t pid = exec((uint64_t) test_prio, 1, argv);
+        waitpid(pid);
+    }
     return NULL;
 }
 

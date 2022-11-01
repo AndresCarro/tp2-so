@@ -36,7 +36,7 @@ void sys_copymem(uint64_t address, uint8_t * buffer, uint64_t length);
 
 pid_t exec(uint64_t program, unsigned int argc, char * argv[]);
 pid_t waitpid(pid_t pid);
-int nice(int new_priority);
+int nice(pid_t pid, int new_priority);
 
 sem_t sem_open(char * name, int initial_value);
 void sem_close(sem_t sem);
@@ -80,5 +80,6 @@ void free(void * ptr);
 int kill(pid_t pid);
 int block(pid_t pid);
 int unblock(pid_t pid);
+pid_t getpid();
 
 #endif

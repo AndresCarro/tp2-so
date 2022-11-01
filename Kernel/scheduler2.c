@@ -383,11 +383,15 @@ int terminate_process(int return_value, char autokill) {
     return return_value;
 }
 
-int change_priority(int priority_value){
+int change_priority(pid_t pid, int priority_value){
     if(priority_value < 0 && priority_value > 8){//Fuera del rango de priorities
         return -1;
     }
-    active->process.new_priority = priority_value;
+    PCB * process = get_process(pid);
+    if (process == NULL) {
+        return -1;
+    }
+    process->new_priority = priority_value;
     return 0;
 }
 

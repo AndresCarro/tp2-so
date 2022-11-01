@@ -25,6 +25,7 @@ GLOBAL free
 GLOBAL kill
 GLOBAL block
 GLOBAL unblock
+GLOBAL getpid
 
 GLOBAL halt
 
@@ -262,6 +263,15 @@ unblock:
     enter 0,0
 
     mov rax, 24
+    int 80h
+
+    leave
+    ret
+
+getpid:
+    enter 0,0
+
+    mov rax, 25
     int 80h
 
     leave

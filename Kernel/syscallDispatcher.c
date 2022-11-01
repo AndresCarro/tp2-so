@@ -9,7 +9,7 @@ static void sys_write(unsigned fd, const char* buffer, uint64_t count);
 static pid_t sys_exec(uint64_t program, unsigned int argc, char * argv[]);
 static void sys_exit(int retValue, char autokill);
 static pid_t sys_waitpid(pid_t pid);
-static int sys_nice(int new_priority);
+static int sys_nice(pid_t pid, int new_priority);
 
 static void sys_time(time_t * s);
 static void sys_copymem(uint64_t address, uint8_t * buffer, uint64_t length);
@@ -29,6 +29,7 @@ static PCBInfo * sys_get_process_info();
 static int sys_kill(pid_t pid);
 static int sys_block_process(pid_t pid);
 static int sys_unblock_process(pid_t pid);
+static pid_t sys_getpid();
 
 uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rax, uint64_t * registers){
     switch(rax){
@@ -66,7 +67,7 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
             return sys_waitpid((pid_t) rdi);
             break;
         case 11:
-            return sys_nice((int) rdi);
+            return sys_nice((pid_t) rdi, (int) rsi);
             break;
         case 12:
             return sys_sem_open((char *) rdi, (int) rsi);
@@ -106,6 +107,9 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
             break;
         case 24:
             return sys_unblock_process((pid_t) rdi);
+            break;
+        case 25:
+            return sys_getpid();
             break;
     }
     return 0;
@@ -168,8 +172,8 @@ static pid_t sys_waitpid(pid_t pid) {
     return pid;
 }
 
-static int sys_nice(int new_priority) {
-    return change_priority(new_priority);
+static int sys_nice(pid_t pid, int new_priority) {
+    return change_priority(pid, new_priority);
 }
 
 static void sys_time(time_t * s){
@@ -320,4 +324,8 @@ static int sys_block_process(pid_t pid) {
 
 static int sys_unblock_process(pid_t pid) {
     return unblock_process(pid);
+}
+
+static pid_t sys_getpid() {
+    return get_current_pid();
 }
