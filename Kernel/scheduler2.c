@@ -325,11 +325,11 @@ uint64_t context_switch(uint64_t rsp) {
     // Acomodo el que termino de correr (no me interesa el status) en su lugar en la lista de expirados
     // teniendo en cuenta su prioridad.
     if(current_process->process.quantums_left == 0) {
-        current_process->process.quantums_left = priorities[current_process->process.priority];
         if (current_process->process.new_priority != -1) {
             current_process->process.priority = current_process->process.new_priority;
             current_process->process.new_priority = -1;
         }
+        current_process->process.quantums_left = priorities[current_process->process.priority];
         Node * current_expired = expired;
         Node * previous_expired = NULL;
         while(current_expired != NULL && current_process->process.priority >= current_expired->process.priority) {
@@ -349,10 +349,10 @@ uint64_t context_switch(uint64_t rsp) {
             previous_expired->next = current_process;
             current_process->next = current_expired;
         }
-        if(active == NULL) {
-            active = expired;
-            expired = NULL;
-        }
+        // if(active == NULL) {
+        //     active = expired;
+        //     expired = NULL;
+        // }
     }
     next_to_run();
     return active->process.rsp;
@@ -379,6 +379,7 @@ int terminate_process(int return_value, char autokill) {
     memory_manager_free(current_process);
     if (autokill) {
         something_running = 0;
+        _int20h();
     }
     return return_value;
 }
@@ -425,4 +426,10 @@ PCBInfo * process_info() {
         current = current->next;
     }
     return info;
+}
+
+int yield_process() {
+    active->process.quantums_left = 0;
+    _int20h();
+    return 0;
 }

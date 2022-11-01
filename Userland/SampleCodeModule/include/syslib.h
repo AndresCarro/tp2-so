@@ -81,5 +81,6 @@ int kill(pid_t pid);
 int block(pid_t pid);
 int unblock(pid_t pid);
 pid_t getpid();
+int yield();
 
 #endif

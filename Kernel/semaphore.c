@@ -52,6 +52,7 @@ void sem_close(sem_t sem) {
 
     if (sem->linked_processes > 1) {
         sem->linked_processes--;
+        return;
     }
 
     if (previous == NULL) {

@@ -37,7 +37,6 @@ _start:
     ; TODO mov rax, Numero de syscall de exit
     mov rax, 4
     int 80h
-    int 20h
 
 ; Creamos el stack "simulado" del proceso para que el scheduler
 ; pueda tomar el programa y correrlo

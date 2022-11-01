@@ -30,6 +30,7 @@ static int sys_kill(pid_t pid);
 static int sys_block_process(pid_t pid);
 static int sys_unblock_process(pid_t pid);
 static pid_t sys_getpid();
+static int sys_yield_process();
 
 uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rax, uint64_t * registers){
     switch(rax){
@@ -110,6 +111,9 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
             break;
         case 25:
             return sys_getpid();
+            break;
+        case 26:
+            return sys_yield_process();
             break;
     }
     return 0;
@@ -328,4 +332,8 @@ static int sys_unblock_process(pid_t pid) {
 
 static pid_t sys_getpid() {
     return get_current_pid();
+}
+
+static int sys_yield_process() {
+    return yield_process();
 }

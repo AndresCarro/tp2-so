@@ -26,6 +26,7 @@ GLOBAL kill
 GLOBAL block
 GLOBAL unblock
 GLOBAL getpid
+GLOBAL yield
 
 GLOBAL halt
 
@@ -272,6 +273,15 @@ getpid:
     enter 0,0
 
     mov rax, 25
+    int 80h
+
+    leave
+    ret
+
+yield:
+    enter 0,0
+
+    mov rax, 26
     int 80h
 
     leave

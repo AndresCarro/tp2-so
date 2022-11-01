@@ -206,6 +206,18 @@ void test_block() {
     }
 }
 
+void medium () {
+    close(STDOUT);
+    char * name = "Primes BCK";
+    char * argv[] = {name};
+    pid_t prime_pid = exec(printPrime, 1, argv);
+    sys_exit(0);
+}
+
+void prueba1() {
+
+}
+
 pm commandLine(char* buffer){
     if(strcmp(buffer,"time") == 0){
         putChar('\n');
@@ -281,6 +293,30 @@ pm commandLine(char* buffer){
         char * name = "Priorities aGODio Test";
         char * argv[] = {name};
         pid_t pid = exec((uint64_t) test_prio, 1, argv);
+        waitpid(pid);
+    } else if (strcmp(buffer, "test_sync_with_sem") == 0) {
+        putChar('\n');
+        char * name = "Sync aGODio Test with sem";
+        char * argv[] = {name, "10", "1"};
+        pid_t pid = exec((uint64_t) test_sync, 3, argv);
+        waitpid(pid);
+    } else if (strcmp(buffer, "test_sync_without_sem") == 0) {
+        prueba1();
+        putChar('\n');
+        char * name = "Sync aGODio Test without sem";
+        char * argv[] = {name, "60", "0"};
+        pid_t pid = exec((uint64_t) test_sync, 3, argv);
+        exec((uint64_t) medium, 3, argv);
+        waitpid(pid);
+    } else if (strcmp(buffer, "pb") == 0) {
+        prueba1();
+        putChar('\n');
+        char * name = "Primes SCREEN";
+        char * name2 = "Primes BCK";
+        char * argv[] = {name};
+        char * argv2[] = {name2};
+        pid_t pid = exec((uint64_t) printPrime, 1, argv);
+        exec((uint64_t) medium, 1, argv2);
         waitpid(pid);
     }
     return NULL;

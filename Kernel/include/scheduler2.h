@@ -52,6 +52,7 @@ int unblock_process(pid_t process_pid);
 PCB * get_process(pid_t pid);
 pid_t get_current_pid();
 int change_priority(pid_t pid, int priority_value);
+int yield_process();
 
 PCBInfo * process_info();
 
