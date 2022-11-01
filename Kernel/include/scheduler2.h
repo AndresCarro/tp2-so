@@ -4,9 +4,10 @@
 #include <blocked_queue.h>
 #include <pipe2.h>
 #include <stdint.h>
+#include <general_info.h>
 
 #define TOT_PRIORITIES 9
-#define DEF_PRIORITY 5
+#define DEF_PRIORITY 4
 
 #define READ 0
 #define WRITE 1
@@ -22,14 +23,16 @@ typedef struct {
 typedef struct {
     pid_t pid;
     priority_t priority;
+    int new_priority;
     status_t status;
     unsigned int quantums_left;
     uint64_t rsp;
     uint64_t stack_base;
-    int new_priority;
     BlockedQueueADT blocked_queue;
     fd_t file_desciptors[MAX_FDS];
     unsigned int last_fd;
+    unsigned int argc;
+    char ** argv;
 } PCB;
 
 typedef struct node{
@@ -39,13 +42,18 @@ typedef struct node{
 
 typedef Node * Queue;
 
+int prepare_process_for_work(pid_t pid);
+
 void scheduler_init(Pipe * stdin);
 pid_t create_process(uint64_t rip, int argc, char * argv[]);
-int terminate_process(int return_value);
-void block_process(pid_t process_pid);
-void unblock_process(pid_t process_pid);
+int terminate_process(int return_value, char autokill);
+int block_process(pid_t process_pid);
+int unblock_process(pid_t process_pid);
 PCB * get_process(pid_t pid);
 pid_t get_current_pid();
-int change_priority(int priority_value);
+int change_priority(pid_t pid, int priority_value);
+int yield_process();
+
+PCBInfo * process_info();
 
 #endif

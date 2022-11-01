@@ -1,4 +1,5 @@
 #include <bash.h>
+#include <processes.h>
 
 #define MAX_SIZE_CMD 32
 static char buffer[32];
@@ -37,7 +38,9 @@ int readInput(){
     }else{
         pm fun = commandLine(buffer);
         if(fun != NULL){
-            pid_t pid = exec((uint64_t) fun, 0, NULL);
+            char * name = "Funcion";
+            char * argv[] = {name}; // TODO HAY QUE ARREGLAR ESTO
+            pid_t pid = exec((uint64_t) fun, 1, argv);
             waitpid(pid);
         }
     }
@@ -63,7 +66,9 @@ void test_nice2() {
 }
 
 void test_nice() {
-    exec((uint64_t) test_nice2, 0, NULL);
+    char * name = "Test Nice 2";
+    char * argv[] = {name};
+    exec((uint64_t) test_nice2, 1, argv);
     sem_t sem = sem_open("prueba", 0);
 	sem_wait(sem);
     while (1) {
@@ -89,7 +94,9 @@ void test_pipe_2() {
 void dup_handler(int argc, char * argv[]) {
     int k = atoi(argv[0]);
     dup2(k, STDIN);
-    exec(test_pipe_2, 0, NULL);
+    char * name = "Test Pipe 2";
+    char * argvs[] = {name};
+    exec(test_pipe_2, 1, argvs);
 }
 
 void test_pipe() {
@@ -98,9 +105,10 @@ void test_pipe() {
 
     char str[2];
     itoa(fds[0],str);
-    char * argv[] = {str};
+    char * name = "Dup Handler";
+    char * argv[] = {name, str};
 
-    exec((uint64_t) dup_handler, 1, argv);
+    exec((uint64_t) dup_handler, 2, argv);
     
     dup2(fds[1], STDOUT);
     while (1) {
@@ -120,6 +128,94 @@ void test_close() {
     if (fds3[0] == fds2[1]) {
         puts("FUNCIONA");
     }
+}
+
+void test_pipe_info() {
+    int fds1[2];
+    int fds2[2];
+    pipe(fds1);
+    pipe(fds2);
+    sys_write(fds1[1], "HOLA HOLA HOLA", 14);
+    close(fds2[0]);
+
+    PipeInfo * info = pipe_info();
+    while (info != NULL) {
+        fprintf(STDOUT, "Avail: %d; Left: %d, Open Read: %d, Open Write: %d\n", info->available_space, info->left_to_read, info->open_for_read, info->open_for_write);
+        info = info->next;
+    }
+}
+
+void test_sem_info_2() {
+    sem_t sem = sem_open("prueba", 0);
+    sem_t sem2 = sem_open("prueba2", 3);
+    sem_post(sem2);
+    
+    SemInfo * info = sem_info();
+    while (info != NULL) {
+        fprintf(STDOUT, "Name: %s, Value: %d, Blocked Processes: %d, Linked Processes: %d\n", info->name, info->value, info->blocked_processes, info->linked_processes);
+        info = info->next;
+    }
+    sem_post(sem);
+}
+
+void test_sem_info() {
+    char * name = "Test Sem Info 2";
+    char * argv[] = {name};
+    exec((uint64_t) test_sem_info_2, 1, argv);
+    sem_t sem = sem_open("prueba", 0);
+	sem_wait(sem);
+}
+
+void test_process_info() {
+    PCBInfo * info = process_info();
+    char * status[] = {"Ready", "Blocked", "Terminated"};
+    while (info != NULL) {
+        fprintf(STDOUT, "Name: %s, PID: %d, RSP: 0x%x, RBP: 0x%x, Priority: %d, Status: %s\n", info->name, info->pid, info->rsp, info->rbp, info->priority, status[info->status]);
+        info = info->next;
+    }
+}
+
+void test_mem_info() {
+    MemInfo * info = mem_info();
+    fprintf(STDOUT, "Total: %d, Occupied: %d, Free: %d, Fragments: %d\n", info->memory_total, info->memory_occupied, info->memory_free, info->memory_frags);
+}
+
+void test_block2() {
+    while(1) {
+        putChar('B');
+        halt();
+    }
+}
+
+void test_block() {
+    char * name = "Test Block 2";
+    char * argv[] = {name};
+    pid_t pid = exec((uint64_t) test_block2, 1, argv);
+    int i = 0;
+    while (i < 100) {
+        putChar('A');
+        if (i == 10) {
+            block(pid);
+        } else if (i == 20) {
+            unblock(pid);
+        } else if (i == 40) {
+            kill(pid);
+        }
+        halt();
+        i++;
+    }
+}
+
+void medium () {
+    close(STDOUT);
+    char * name = "Primes BCK";
+    char * argv[] = {name};
+    pid_t prime_pid = exec(printPrime, 1, argv);
+    sys_exit(0);
+}
+
+void prueba1() {
+
 }
 
 pm commandLine(char* buffer){
@@ -160,6 +256,68 @@ pm commandLine(char* buffer){
     } else if (strcmp(buffer, "test_close") == 0) {
         putChar('\n');
         return (pm) test_close;
+    } else if (strcmp(buffer, "test_pipe_info") == 0) {
+        putChar('\n');
+        return (pm) test_pipe_info;
+    } else if (strcmp(buffer, "test_sem_info") == 0) {
+        putChar('\n');
+        return (pm) test_sem_info;
+    } else if (strcmp(buffer, "test_process_info") == 0) {
+        putChar('\n');
+        return (pm) test_process_info;
+    } else if (strcmp(buffer, "mem info") == 0) {
+        putChar('\n');
+        return (pm) test_mem_info;
+    } else if (strcmp(buffer, "test mm") == 0) {
+        putChar('\n');
+        char * name = "Memory Test";
+        char * max_memory = "17000000";
+        char * argv[] = {name, max_memory};
+        pid_t pid = exec((uint64_t) test_mm, 2, argv);
+        waitpid(pid);
+    } else if (strcmp(buffer, "test processes") == 0) {
+        putChar('\n');
+        char * name = "Processes Test";
+        char * max_proc = "5";
+        char * argv[] = {name, max_proc};
+        pid_t pid = exec((uint64_t) test_processes, 2, argv);
+        waitpid(pid);
+    } else if (strcmp(buffer, "test_p") == 0) {
+        putChar('\n');
+        char * name = "Our Processes Test";
+        char * argv[] = {name};
+        pid_t pid = exec((uint64_t) test_block, 1, argv);
+        waitpid(pid);
+    } else if (strcmp(buffer, "test_prio") == 0) {
+        putChar('\n');
+        char * name = "Priorities aGODio Test";
+        char * argv[] = {name};
+        pid_t pid = exec((uint64_t) test_prio, 1, argv);
+        waitpid(pid);
+    } else if (strcmp(buffer, "test_sync_with_sem") == 0) {
+        putChar('\n');
+        char * name = "Sync aGODio Test with sem";
+        char * argv[] = {name, "10", "1"};
+        pid_t pid = exec((uint64_t) test_sync, 3, argv);
+        waitpid(pid);
+    } else if (strcmp(buffer, "test_sync_without_sem") == 0) {
+        prueba1();
+        putChar('\n');
+        char * name = "Sync aGODio Test without sem";
+        char * argv[] = {name, "60", "0"};
+        pid_t pid = exec((uint64_t) test_sync, 3, argv);
+        exec((uint64_t) medium, 3, argv);
+        waitpid(pid);
+    } else if (strcmp(buffer, "pb") == 0) {
+        prueba1();
+        putChar('\n');
+        char * name = "Primes SCREEN";
+        char * name2 = "Primes BCK";
+        char * argv[] = {name};
+        char * argv2[] = {name2};
+        pid_t pid = exec((uint64_t) printPrime, 1, argv);
+        exec((uint64_t) medium, 1, argv2);
+        waitpid(pid);
     }
     return NULL;
 }

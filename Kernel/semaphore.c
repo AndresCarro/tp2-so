@@ -52,6 +52,7 @@ void sem_close(sem_t sem) {
 
     if (sem->linked_processes > 1) {
         sem->linked_processes--;
+        return;
     }
 
     if (previous == NULL) {
@@ -106,26 +107,18 @@ int sem_wait(sem_t sem) {
     return 0;
 }
 
-// int sem_listSemaphores(TSemaphoreInfo* array, int maxSemaphores) {
-//     _spin_lock(&generalLock);
-//     int semCounter = 0;
-
-//     for (int i = 1; i < MAX_SEMAPHORES && semCounter < maxSemaphores; ++i) {
-//         TSemaphore* sem = semaphores[i];
-//         if (sem != NULL) {
-//             TSemaphoreInfo* info = &array[semCounter++];
-//             info->value = sem->value;
-//             info->linkedProcesses = sem->linkedProcesses;
-
-//             if (sem->name == NULL)
-//                 info->name[0] = '\0';
-//             else
-//                 strncpy(info->name, sem->name, MAX_NAME_LENGTH);
-
-//             int waitingPids = wq_getPids(sem->waitingProcesses, info->waitingProcesses, wq_count(sem->waitingProcesses));
-//             info->waitingProcesses[waitingPids] = -1;
-//         }
-//     }
-//     _unlock(&generalLock);
-//     return semCounter;
-// }
+SemInfo * sem_info() {
+    SemList current = semaphores;
+    SemInfo * info = NULL;
+    while (current != NULL) {
+        SemInfo * new_info = memory_manager_alloc(sizeof(SemInfo));
+        new_info->name = strcpy(current->sem.name);
+        new_info->value = current->sem.value;
+        new_info->linked_processes = current->sem.linked_processes;
+        new_info->blocked_processes = get_blocked_qty(current->sem.blocked_processes);
+        new_info->next = info;
+        info = new_info;
+        current = current->next;
+    }
+    return info;
+}

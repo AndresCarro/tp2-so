@@ -16,6 +16,17 @@ GLOBAL sem_post
 GLOBAL pipe
 GLOBAL dup2
 GLOBAL close
+GLOBAL pipe_info
+GLOBAL sem_info
+GLOBAL process_info
+GLOBAL mem_info
+GLOBAL malloc
+GLOBAL free
+GLOBAL kill
+GLOBAL block
+GLOBAL unblock
+GLOBAL getpid
+GLOBAL yield
 
 GLOBAL halt
 
@@ -172,6 +183,105 @@ close:
     enter 0,0
 
     mov rax, 18
+    int 80h
+
+    leave
+    ret
+
+pipe_info:
+    enter 0,0
+
+    mov rax, 19
+    int 80h
+
+    leave
+    ret
+
+sem_info:
+    enter 0,0
+
+    mov rax, 20
+    int 80h
+
+    leave
+    ret
+
+process_info:
+    enter 0,0
+
+    mov rax, 21
+    int 80h
+
+    leave
+    ret
+
+mem_info:
+    enter 0,0
+
+    mov rax, 9
+    int 80h
+
+    leave
+    ret
+
+malloc:
+    enter 0,0
+
+    mov rax, 7
+    int 80h
+
+    leave
+    ret
+
+free:
+    enter 0,0
+
+    mov rax, 8
+    int 80h
+
+    leave
+    ret
+
+kill:
+    enter 0,0
+
+    mov rax, 22
+    int 80h
+
+    leave
+    ret
+
+block:
+    enter 0,0
+
+    mov rax, 23
+    int 80h
+
+    leave
+    ret
+
+unblock:
+    enter 0,0
+
+    mov rax, 24
+    int 80h
+
+    leave
+    ret
+
+getpid:
+    enter 0,0
+
+    mov rax, 25
+    int 80h
+
+    leave
+    ret
+
+yield:
+    enter 0,0
+
+    mov rax, 26
     int 80h
 
     leave

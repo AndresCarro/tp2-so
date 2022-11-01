@@ -3,13 +3,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-
-typedef struct{
-    uint64_t memory_free;
-    uint64_t memory_occupied;
-    uint64_t memory_total;
-    uint64_t memory_nodes; // Mientras mas nodos mas fragmentacion.
-}Memory_State;
+#include <general_info.h>
 
 //Crea la lista de memoria, recibe la direcc de memoria donde arranca el heap y el size del mismo.
 void memory_manager_start(void * start_address, uint64_t size_heap);
@@ -21,7 +15,6 @@ void * memory_manager_alloc( uint64_t size );
 nodos contiguos libres los junta.*/
 void memory_manager_free(void * ptr);
 
-//Devuelve a traves de Memory_State informacion sobre la memoria.
-void memory_manager_get_state(Memory_State * memory_state);
+MemInfo * mem_info();
 
 #endif

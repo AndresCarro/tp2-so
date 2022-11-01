@@ -17,13 +17,14 @@ pid_t dummy_process_pid = NULL;
 
 void dummy_process() {
     while (1) {
-        // ncPrint("A");
         _hlt();
     }
 }
 
 void scheduler_init(Pipe * stdin) {
-    dummy_process_pid = create_process(dummy_process, 0, NULL);
+    char * name = "Kernel Task";
+    char * argv[] = {name};
+    dummy_process_pid = create_process(dummy_process, 1, argv);
     
     active->process.last_fd = 2;
     active->process.file_desciptors[0].mode = READ;
@@ -66,7 +67,7 @@ pid_t get_current_pid() {
     return -1;
 }
 
-void unblock_process(pid_t process_pid) {
+int unblock_process(pid_t process_pid) {
     Node * current = active;
     Node * previous = NULL;
     char found = 0;
@@ -96,11 +97,13 @@ void unblock_process(pid_t process_pid) {
     // No tengo que hacer nada pa. Solamente cambio el estado.
     if(found) {
         process_ready_count++;
+        return 0;
     }
+    return -1;
 }
 
 // Devuelve 1 si lo bloqueo, sino devuelve 0
-void block_process(pid_t process_pid) {
+int block_process(pid_t process_pid) {
     Node * current = active;
     Node * previous = NULL;
     char found = 0;
@@ -131,7 +134,9 @@ void block_process(pid_t process_pid) {
     if(found) {
         process_ready_count--;
         _int20h();
+        return 0;
     }
+    return -1;
 }
 
 void copy_fd_table(fd_t src[], fd_t dest[], unsigned int qty) {
@@ -142,6 +147,14 @@ void copy_fd_table(fd_t src[], fd_t dest[], unsigned int qty) {
     }
 }
 
+char ** copy_argv(int argc, char ** argv) {
+    char ** new_argv = memory_manager_alloc(sizeof(char *) * argc);
+    for (int i = 0; i < argc; i++) {
+        new_argv[i] = strcpy(argv[i]);
+    }
+    return new_argv;
+}
+
 pid_t create_process(uint64_t rip, int argc, char * argv[]) {
     Node * new_process = memory_manager_alloc(sizeof(Node));
     new_process->process.pid = process_count++;
@@ -150,6 +163,8 @@ pid_t create_process(uint64_t rip, int argc, char * argv[]) {
     new_process->process.status = READY;
     new_process->process.blocked_queue = new_blocked_queue();
     new_process->process.new_priority = -1;
+    new_process->process.argc = argc;
+    new_process->process.argv = copy_argv(argc, argv);
     if (active != NULL) {
         new_process->process.last_fd = active->process.last_fd;
         copy_fd_table(active->process.file_desciptors, new_process->process.file_desciptors, new_process->process.last_fd);
@@ -243,10 +258,10 @@ void next_to_run() {
 }
 
 // Deja todo para el head de active sea el que tenga que correr
-void prepare_dummy_for_work() {
+int prepare_process_for_work(pid_t pid) {
     Node * current = active;
     Node * previous = NULL;
-    while(current != NULL && current->process.pid != dummy_process_pid) {
+    while(current != NULL && current->process.pid != pid) {
         previous = current;
         current = current->next;
     }
@@ -260,9 +275,12 @@ void prepare_dummy_for_work() {
     } else {
         current = expired;
         previous = NULL;
-        while(current->process.pid != dummy_process_pid) {
+        while(current != NULL && current->process.pid != pid) {
             previous = current;
             current = current->next;
+        }
+        if (current == NULL) {
+            return -1;
         }
         if(previous == NULL) {
             expired = current->next;   
@@ -272,6 +290,7 @@ void prepare_dummy_for_work() {
         current->next = active;
         active = current;
     }
+    return 0;
 }
 
 // El rsp es el rsp del proceso que se estaba corriendo. Donde quedaron los registros
@@ -283,7 +302,7 @@ uint64_t context_switch(uint64_t rsp) {
         if(process_ready_count > 0) {
             next_to_run();
         } else { // C1.3.2 y C1.3.3
-            prepare_dummy_for_work();
+            prepare_process_for_work(dummy_process_pid);
         }
         return active->process.rsp;
     }
@@ -293,7 +312,7 @@ uint64_t context_switch(uint64_t rsp) {
 
     // Si no tengo procesos en ready, es decir, estan todos bloqueados tengo que correr el dummy
     if(process_ready_count == 0) {
-        prepare_dummy_for_work();
+        prepare_process_for_work(dummy_process_pid);
         return active->process.rsp;
     }
 
@@ -306,11 +325,11 @@ uint64_t context_switch(uint64_t rsp) {
     // Acomodo el que termino de correr (no me interesa el status) en su lugar en la lista de expirados
     // teniendo en cuenta su prioridad.
     if(current_process->process.quantums_left == 0) {
-        current_process->process.quantums_left = priorities[current_process->process.priority];
         if (current_process->process.new_priority != -1) {
             current_process->process.priority = current_process->process.new_priority;
             current_process->process.new_priority = -1;
         }
+        current_process->process.quantums_left = priorities[current_process->process.priority];
         Node * current_expired = expired;
         Node * previous_expired = NULL;
         while(current_expired != NULL && current_process->process.priority >= current_expired->process.priority) {
@@ -330,16 +349,16 @@ uint64_t context_switch(uint64_t rsp) {
             previous_expired->next = current_process;
             current_process->next = current_expired;
         }
-        if(active == NULL) {
-            active = expired;
-            expired = NULL;
-        }
+        // if(active == NULL) {
+        //     active = expired;
+        //     expired = NULL;
+        // }
     }
     next_to_run();
     return active->process.rsp;
 }
 
-int terminate_process(int return_value){
+int terminate_process(int return_value, char autokill) {
     Node * current_process = active;
 
     pid_t blocked_pid;
@@ -348,18 +367,69 @@ int terminate_process(int return_value){
     }
 
     active = current_process->next;
-    process_ready_count--;
+    if (current_process->process.status != BLOCKED) {
+        process_ready_count--;
+    }
+    for (int i = 0; i < current_process->process.argc; i++) {
+        memory_manager_free(current_process->process.argv[i]);
+    }
+    memory_manager_free(current_process->process.argv);
     free_queue(current_process->process.blocked_queue);
     memory_manager_free(current_process->process.stack_base);
     memory_manager_free(current_process);
-    something_running = 0;
+    if (autokill) {
+        something_running = 0;
+        _int20h();
+    }
     return return_value;
 }
 
-int change_priority(int priority_value){
+int change_priority(pid_t pid, int priority_value){
     if(priority_value < 0 && priority_value > 8){//Fuera del rango de priorities
         return -1;
     }
-    active->process.new_priority = priority_value;
+    PCB * process = get_process(pid);
+    if (process == NULL) {
+        return -1;
+    }
+    process->new_priority = priority_value;
+    return 0;
+}
+
+PCBInfo * process_info() {
+    PCBInfo * info = NULL;
+
+    Queue current = active;
+    while (current != NULL) {
+        PCBInfo * new_info = memory_manager_alloc(sizeof(PCBInfo));
+        new_info->name = strcpy(current->process.argv[0]);
+        new_info->pid = current->process.pid;
+        new_info->priority = current->process.priority;
+        new_info->status = current->process.status;
+        new_info->rsp = current->process.rsp;
+        new_info->rbp = current->process.rsp;
+        new_info->next = info;
+        info = new_info;
+        current = current->next;
+    }
+    current = expired;
+    while (current != NULL) {
+        PCBInfo * new_info = memory_manager_alloc(sizeof(PCBInfo));
+        new_info->name = strcpy(current->process.argv[0]);
+        new_info->pid = current->process.pid;
+        new_info->priority = current->process.priority;
+        new_info->status = current->process.status;
+        new_info->rsp = current->process.rsp;
+        new_info->rbp = current->process.rsp;
+        new_info->next = info;
+        info = new_info;
+        current = current->next;
+    }
+    return info;
+}
+
+int yield_process() {
+    active->process.quantums_left = 0;
+    _int20h();
     return 0;
 }

@@ -1,4 +1,5 @@
 #include <syslib.h>
+#include <stdarg.h>
 
 unsigned int strlen(const char *str){
     unsigned int len = 0;
@@ -157,7 +158,7 @@ void printPrime(){
     char num[30];
     int i=2;
     puts("Prime numbers: ");
-    puts("1, ");
+    puts("1,\n");
     while(1){
         if(isPrime(i)){
             if(num<0){//por si se pasa del max integer
@@ -168,6 +169,7 @@ void printPrime(){
             puts(",\n");
         }
         i++;
+        halt();
     }
 }
 
@@ -340,8 +342,74 @@ uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base)
 }
 
 int atoi(char * str) {
-    int res = 0;
-    for (int i = 0; str[i] != '\0'; ++i)
+    uint64_t i = 0;
+    int64_t res = 0;
+    int8_t sign = 1;
+
+    if (!str) return 0;
+
+    if (str[i] == '-'){
+        i++;
+        sign = -1;
+    }
+
+    for ( ; str[i] != '\0'; ++i){
+        if(str[i] < '0' || str[i] > '9'){
+            return 0;
+        }
         res = res * 10 + str[i] - '0';
-    return res;
+    }
+
+    return res * sign;
 }
+
+void strcpy(char * dest, char * src) {
+	unsigned int len = strlen(src);
+    int i;
+	for (i = 0; i < len; i++) {
+        dest[i] = src[i];
+    }
+    dest[i] = 0;
+}
+
+void fprintf(int fd, char * str, ...) {
+    va_list vl;
+	int i = 0, j=0;
+    char buff[100]={0}, tmp[20];
+    va_start( vl, str ); 
+
+    while (str && str[i]) {
+        if(str[i] == '%') {
+            i++;
+            switch (str[i]) {
+                case 'c': 
+                    buff[j] = (char)va_arg( vl, int );
+                    j++;
+                    break;
+                case 'd': 
+                    itoa(va_arg( vl, int ), tmp);
+                    strcpy(&buff[j], tmp);
+                    j += strlen(tmp);
+                    break;
+                case 's': {
+                    char * str = va_arg( vl, char * );
+                    strcpy(&buff[j], str);
+                    j += strlen(str);
+                    break;
+                }
+                case 'x': {
+                    uintToBase(va_arg( vl, int ), tmp, 16);
+                    strcpy(&buff[j], tmp);
+                    j += strlen(tmp);
+                    break;
+                }
+            }
+        } else {
+            buff[j] = str[i];
+            j++;
+        }
+        i++;
+    }
+    va_end(vl);
+    sys_write(fd, buff, j);
+ }

@@ -33,10 +33,10 @@ _start:
     ; Guardamos el return value de la funcion en rdi para pasarselo como primer
     ; parametro a la syscall
     mov rdi, rax
+    mov rsi, 1
     ; TODO mov rax, Numero de syscall de exit
     mov rax, 4
     int 80h
-    int 20h
 
 ; Creamos el stack "simulado" del proceso para que el scheduler
 ; pueda tomar el programa y correrlo

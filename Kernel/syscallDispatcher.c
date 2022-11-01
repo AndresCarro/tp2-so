@@ -7,15 +7,15 @@
 static uint64_t sys_read(unsigned int fd, char* output, uint64_t count);
 static void sys_write(unsigned fd, const char* buffer, uint64_t count);
 static pid_t sys_exec(uint64_t program, unsigned int argc, char * argv[]);
-static void sys_exit(int retValue);
+static void sys_exit(int retValue, char autokill);
 static pid_t sys_waitpid(pid_t pid);
-static int sys_nice(int new_priority);
+static int sys_nice(pid_t pid, int new_priority);
 
 static void sys_time(time_t * s);
 static void sys_copymem(uint64_t address, uint8_t * buffer, uint64_t length);
 static void * sys_malloc(uint64_t size);
 static void sys_free(uint64_t ptr);
-static void sys_get_mem_state(uint64_t memory_state);
+static MemInfo * sys_get_mem_info();
 static sem_t sys_sem_open(char * name, int initial_value);
 static void sys_sem_close(sem_t sem);
 static int sys_sem_wait(sem_t sem);
@@ -23,6 +23,14 @@ static int sys_sem_post(sem_t sem);
 static int sys_pipe(int fds[]);
 static void sys_dup2(int old, int new);
 static void sys_close(int fd);
+static PipeInfo * sys_get_pipe_info();
+static SemInfo * sys_get_sem_info();
+static PCBInfo * sys_get_process_info();
+static int sys_kill(pid_t pid);
+static int sys_block_process(pid_t pid);
+static int sys_unblock_process(pid_t pid);
+static pid_t sys_getpid();
+static int sys_yield_process();
 
 uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rax, uint64_t * registers){
     switch(rax){
@@ -39,7 +47,7 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
             return sys_exec(rdi, (unsigned int) rsi, (char **) rdx);
             break;
         case 4:
-            sys_exit((int) rdi);
+            sys_exit((int) rdi, 1);
             break;
         case 5:
             sys_time((time_t*)rdi);
@@ -54,13 +62,13 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
             sys_free(rdi);
             break;
         case 9:
-            sys_get_mem_state(rdi);
+            return sys_get_mem_info();
             break;
         case 10:
             return sys_waitpid((pid_t) rdi);
             break;
         case 11:
-            return sys_nice((int) rdi);
+            return sys_nice((pid_t) rdi, (int) rsi);
             break;
         case 12:
             return sys_sem_open((char *) rdi, (int) rsi);
@@ -82,6 +90,30 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
             break;
         case 18:
             sys_close((int) rdi);
+            break;
+        case 19:
+            return sys_get_pipe_info();
+            break;
+        case 20:
+            return sys_get_sem_info();
+            break;
+        case 21:
+            return sys_get_process_info();
+            break;
+        case 22:
+            return sys_kill((pid_t) rdi);
+            break;
+        case 23:
+            return sys_block_process((pid_t) rdi);
+            break;
+        case 24:
+            return sys_unblock_process((pid_t) rdi);
+            break;
+        case 25:
+            return sys_getpid();
+            break;
+        case 26:
+            return sys_yield_process();
             break;
     }
     return 0;
@@ -120,7 +152,7 @@ static pid_t sys_exec(uint64_t program, unsigned int argc, char * argv[]){
     return create_process(program, argc, argv);
 }
 
-static void sys_exit(int return_value){
+static void sys_exit(int return_value, char autokill){
     PCB * pcb = get_process(get_current_pid());
     unsigned int last_fd = pcb->last_fd;
 
@@ -128,7 +160,7 @@ static void sys_exit(int return_value){
         sys_close(i);
     }
 
-    terminate_process(return_value);
+    terminate_process(return_value, autokill);
 }
 
 static pid_t sys_waitpid(pid_t pid) {
@@ -144,8 +176,8 @@ static pid_t sys_waitpid(pid_t pid) {
     return pid;
 }
 
-static int sys_nice(int new_priority) {
-    return change_priority(new_priority);
+static int sys_nice(pid_t pid, int new_priority) {
+    return change_priority(pid, new_priority);
 }
 
 static void sys_time(time_t * s){
@@ -169,8 +201,8 @@ static void sys_free(uint64_t ptr) {
     memory_manager_free((void *) ptr);
 }
 
-static void sys_get_mem_state(uint64_t memory_state) {
-    memory_manager_get_state((Memory_State *)memory_state);
+static MemInfo * sys_get_mem_info() {
+    return mem_info();
 }
 
 static sem_t sys_sem_open(char * name, int initial_value) {
@@ -252,7 +284,7 @@ static void sys_close(int fd) {
     fd_t * table = pcb->file_desciptors;
     unsigned int last_fd = pcb->last_fd;
 
-    if (fd >= last_fd) {
+    if (fd >= last_fd || table[fd].mode == CLOSED) {
         return;
     }
 
@@ -261,9 +293,47 @@ static void sys_close(int fd) {
     }
     table[fd].mode = CLOSED;
 
-    while (table[last_fd - 1].mode == CLOSED) {
+    while (last_fd > 0 && table[last_fd - 1].mode == CLOSED) {
         last_fd--;
     }
     
     pcb->last_fd = last_fd;
+}
+
+static PipeInfo * sys_get_pipe_info() {
+    return pipe_info();
+}
+
+static SemInfo * sys_get_sem_info() {
+    return sem_info();
+}
+
+static PCBInfo * sys_get_process_info() {
+    return process_info();
+}
+
+static int sys_kill(pid_t pid) {
+    int x = prepare_process_for_work(pid);
+    if (x == -1) {
+        return -1;
+    }
+
+    sys_exit(0, 0);
+    return 0;
+}
+
+static int sys_block_process(pid_t pid) {
+    return block_process(pid);
+}
+
+static int sys_unblock_process(pid_t pid) {
+    return unblock_process(pid);
+}
+
+static pid_t sys_getpid() {
+    return get_current_pid();
+}
+
+static int sys_yield_process() {
+    return yield_process();
 }
