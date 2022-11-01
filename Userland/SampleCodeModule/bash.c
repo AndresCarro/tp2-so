@@ -1,4 +1,5 @@
 #include <bash.h>
+#include <processes.h>
 
 #define MAX_SIZE_CMD 32
 static char buffer[32];
@@ -229,7 +230,21 @@ pm commandLine(char* buffer){
     } else if (strcmp(buffer, "mem info") == 0) {
         putChar('\n');
         return (pm) test_mem_info;
-    } 
+    } else if (strcmp(buffer, "test mm") == 0) {
+        putChar('\n');
+        char * name = "Memory Test";
+        char * max_memory = "17000000";
+        char * argv[] = {name, max_memory};
+        pid_t pid = exec((uint64_t) test_mm, 2, argv);
+        waitpid(pid);
+    } //else if (strcmp(buffer, "test processes") == 0) {
+    //     putChar('\n');
+    //     char * name = "Processes Test";
+    //     char * max_proc = "732";
+    //     char * argv[] = {name, max_proc};
+    //     pid_t pid = exec((uint64_t) test_processes2, 2, argv);
+    //     waitpid(pid);
+    // } 
     return NULL;
 }
 

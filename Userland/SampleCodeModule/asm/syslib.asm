@@ -20,6 +20,11 @@ GLOBAL pipe_info
 GLOBAL sem_info
 GLOBAL process_info
 GLOBAL mem_info
+GLOBAL malloc
+GLOBAL free
+GLOBAL kill
+GLOBAL block
+GLOBAL unblock
 
 GLOBAL halt
 
@@ -212,6 +217,51 @@ mem_info:
     enter 0,0
 
     mov rax, 9
+    int 80h
+
+    leave
+    ret
+
+malloc:
+    enter 0,0
+
+    mov rax, 7
+    int 80h
+
+    leave
+    ret
+
+free:
+    enter 0,0
+
+    mov rax, 8
+    int 80h
+
+    leave
+    ret
+
+kill:
+    enter 0,0
+
+    mov rax, 22
+    int 80h
+
+    leave
+    ret
+
+block:
+    enter 0,0
+
+    mov rax, 23
+    int 80h
+
+    leave
+    ret
+
+unblock:
+    enter 0,0
+
+    mov rax, 24
     int 80h
 
     leave

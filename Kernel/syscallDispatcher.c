@@ -26,6 +26,9 @@ static void sys_close(int fd);
 static PipeInfo * sys_get_pipe_info();
 static SemInfo * sys_get_sem_info();
 static PCBInfo * sys_get_process_info();
+static int sys_kill(pid_t pid);
+static int sys_block_process(pid_t pid);
+static int sys_unblock_process(pid_t pid);
 
 uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rax, uint64_t * registers){
     switch(rax){
@@ -94,6 +97,15 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
             break;
         case 21:
             return sys_get_process_info();
+            break;
+        case 22:
+            return sys_kill((pid_t) rdi);
+            break;
+        case 23:
+            return sys_block_process((pid_t) rdi);
+            break;
+        case 24:
+            return sys_unblock_process((pid_t) rdi);
             break;
     }
     return 0;
@@ -290,4 +302,20 @@ static SemInfo * sys_get_sem_info() {
 
 static PCBInfo * sys_get_process_info() {
     return process_info();
+}
+
+static int sys_kill(pid_t pid) {
+    int x = prepare_process_for_work(pid);
+    if (x == -1) {
+        return -1;
+    }
+    return terminate_process(0);
+}
+
+static int sys_block_process(pid_t pid) {
+    return block_process(pid);
+}
+
+static int sys_unblock_process(pid_t pid) {
+    return unblock_process(pid);
 }

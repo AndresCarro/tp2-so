@@ -42,11 +42,13 @@ typedef struct node{
 
 typedef Node * Queue;
 
+int prepare_process_for_work(pid_t pid);
+
 void scheduler_init(Pipe * stdin);
 pid_t create_process(uint64_t rip, int argc, char * argv[]);
 int terminate_process(int return_value);
-void block_process(pid_t process_pid);
-void unblock_process(pid_t process_pid);
+int block_process(pid_t process_pid);
+int unblock_process(pid_t process_pid);
 PCB * get_process(pid_t pid);
 pid_t get_current_pid();
 int change_priority(int priority_value);

@@ -74,4 +74,11 @@ SemInfo * sem_info();
 PCBInfo * process_info();
 MemInfo * mem_info();
 
+void * malloc(uint64_t size);
+void free(void * ptr);
+
+int kill(pid_t pid);
+int block(pid_t pid);
+int unblock(pid_t pid);
+
 #endif

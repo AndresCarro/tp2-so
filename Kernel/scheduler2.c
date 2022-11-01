@@ -67,7 +67,7 @@ pid_t get_current_pid() {
     return -1;
 }
 
-void unblock_process(pid_t process_pid) {
+int unblock_process(pid_t process_pid) {
     Node * current = active;
     Node * previous = NULL;
     char found = 0;
@@ -97,11 +97,13 @@ void unblock_process(pid_t process_pid) {
     // No tengo que hacer nada pa. Solamente cambio el estado.
     if(found) {
         process_ready_count++;
+        return 0;
     }
+    return -1;
 }
 
 // Devuelve 1 si lo bloqueo, sino devuelve 0
-void block_process(pid_t process_pid) {
+int block_process(pid_t process_pid) {
     Node * current = active;
     Node * previous = NULL;
     char found = 0;
@@ -132,7 +134,9 @@ void block_process(pid_t process_pid) {
     if(found) {
         process_ready_count--;
         _int20h();
+        return 0;
     }
+    return -1;
 }
 
 void copy_fd_table(fd_t src[], fd_t dest[], unsigned int qty) {
@@ -254,10 +258,10 @@ void next_to_run() {
 }
 
 // Deja todo para el head de active sea el que tenga que correr
-void prepare_dummy_for_work() {
+int prepare_process_for_work(pid_t pid) {
     Node * current = active;
     Node * previous = NULL;
-    while(current != NULL && current->process.pid != dummy_process_pid) {
+    while(current != NULL && current->process.pid != pid) {
         previous = current;
         current = current->next;
     }
@@ -271,9 +275,12 @@ void prepare_dummy_for_work() {
     } else {
         current = expired;
         previous = NULL;
-        while(current->process.pid != dummy_process_pid) {
+        while(current != NULL && current->process.pid != pid) {
             previous = current;
             current = current->next;
+        }
+        if (current == NULL) {
+            return -1;
         }
         if(previous == NULL) {
             expired = current->next;   
@@ -283,6 +290,7 @@ void prepare_dummy_for_work() {
         current->next = active;
         active = current;
     }
+    return 0;
 }
 
 // El rsp es el rsp del proceso que se estaba corriendo. Donde quedaron los registros
@@ -294,7 +302,7 @@ uint64_t context_switch(uint64_t rsp) {
         if(process_ready_count > 0) {
             next_to_run();
         } else { // C1.3.2 y C1.3.3
-            prepare_dummy_for_work();
+            prepare_process_for_work(dummy_process_pid);
         }
         return active->process.rsp;
     }
@@ -304,7 +312,7 @@ uint64_t context_switch(uint64_t rsp) {
 
     // Si no tengo procesos en ready, es decir, estan todos bloqueados tengo que correr el dummy
     if(process_ready_count == 0) {
-        prepare_dummy_for_work();
+        prepare_process_for_work(dummy_process_pid);
         return active->process.rsp;
     }
 
@@ -350,7 +358,7 @@ uint64_t context_switch(uint64_t rsp) {
     return active->process.rsp;
 }
 
-int terminate_process(int return_value){
+int terminate_process(int return_value) {
     Node * current_process = active;
 
     pid_t blocked_pid;
