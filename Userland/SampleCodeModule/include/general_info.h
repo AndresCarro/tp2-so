@@ -1,10 +1,17 @@
 #ifndef GENERAL_INFO_H
 #define GENERAL_INFO_H
 
+#include <defs.h>
 #include <stdint.h>
 
 typedef struct pcbinfo {
-
+    char * name;
+    pid_t pid;
+    uint64_t rsp;
+    uint64_t rbp;
+    unsigned int priority;
+    status_t status;
+    struct pcbinfo * next;
 } PCBInfo;
 
 typedef struct pipeinfo {

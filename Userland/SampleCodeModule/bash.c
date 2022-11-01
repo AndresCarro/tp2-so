@@ -37,7 +37,9 @@ int readInput(){
     }else{
         pm fun = commandLine(buffer);
         if(fun != NULL){
-            pid_t pid = exec((uint64_t) fun, 0, NULL);
+            char * name = "Funcion";
+            char * argv[] = {name}; // TODO HAY QUE ARREGLAR ESTO
+            pid_t pid = exec((uint64_t) fun, 1, argv);
             waitpid(pid);
         }
     }
@@ -63,7 +65,9 @@ void test_nice2() {
 }
 
 void test_nice() {
-    exec((uint64_t) test_nice2, 0, NULL);
+    char * name = "Test Nice 2";
+    char * argv[] = {name};
+    exec((uint64_t) test_nice2, 1, argv);
     sem_t sem = sem_open("prueba", 0);
 	sem_wait(sem);
     while (1) {
@@ -89,7 +93,9 @@ void test_pipe_2() {
 void dup_handler(int argc, char * argv[]) {
     int k = atoi(argv[0]);
     dup2(k, STDIN);
-    exec(test_pipe_2, 0, NULL);
+    char * name = "Test Pipe 2";
+    char * argvs[] = {name};
+    exec(test_pipe_2, 1, argvs);
 }
 
 void test_pipe() {
@@ -98,9 +104,10 @@ void test_pipe() {
 
     char str[2];
     itoa(fds[0],str);
-    char * argv[] = {str};
+    char * name = "Dup Handler";
+    char * argv[] = {name, str};
 
-    exec((uint64_t) dup_handler, 1, argv);
+    exec((uint64_t) dup_handler, 2, argv);
     
     dup2(fds[1], STDOUT);
     while (1) {
@@ -151,9 +158,20 @@ void test_sem_info_2() {
 }
 
 void test_sem_info() {
-    exec((uint64_t) test_sem_info_2, 0, NULL);
+    char * name = "Test Sem Info 2";
+    char * argv[] = {name};
+    exec((uint64_t) test_sem_info_2, 1, argv);
     sem_t sem = sem_open("prueba", 0);
 	sem_wait(sem);
+}
+
+void test_process_info() {
+    PCBInfo * info = process_info();
+    char * status[] = {"Ready", "Blocked", "Terminated"};
+    while (info != NULL) {
+        fprintf(STDOUT, "Name: %s, PID: %d, RSP: %d, RBP: %d, Priority: %d, Status: %s\n", info->name, info->pid, info->rsp, info->rbp, info->priority, status[info->status]);
+        info = info->next;
+    }
 }
 
 pm commandLine(char* buffer){
@@ -200,6 +218,9 @@ pm commandLine(char* buffer){
     } else if (strcmp(buffer, "test_sem_info") == 0) {
         putChar('\n');
         return (pm) test_sem_info;
+    } else if (strcmp(buffer, "test_process_info") == 0) {
+        putChar('\n');
+        return (pm) test_process_info;
     }
     return NULL;
 }

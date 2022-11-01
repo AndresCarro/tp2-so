@@ -25,6 +25,7 @@ static void sys_dup2(int old, int new);
 static void sys_close(int fd);
 static PipeInfo * sys_get_pipe_info();
 static SemInfo * sys_get_sem_info();
+static PCBInfo * sys_get_process_info();
 
 uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rax, uint64_t * registers){
     switch(rax){
@@ -90,6 +91,9 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
             break;
         case 20:
             return sys_get_sem_info();
+            break;
+        case 21:
+            return sys_get_process_info();
             break;
     }
     return 0;
@@ -282,4 +286,8 @@ static PipeInfo * sys_get_pipe_info() {
 
 static SemInfo * sys_get_sem_info() {
     return sem_info();
+}
+
+static PCBInfo * sys_get_process_info() {
+    return process_info();
 }

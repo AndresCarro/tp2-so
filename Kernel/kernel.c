@@ -81,7 +81,9 @@ int main() {
 	memory_manager_start((void *) 0xF00000, 0x2000000 - 0xF00000);
 	Pipe * stdin = keyboard_init();
 	scheduler_init(stdin);
-	create_process(sampleCodeModuleAddress, 0, NULL);
+	char * name = "Userland";
+	char * argv[] = {name};
+	create_process(sampleCodeModuleAddress, 1, argv);
 	// create_process(dummy3, 0, NULL);
 	// create_process(dummy2, 0, NULL);
     _sti();

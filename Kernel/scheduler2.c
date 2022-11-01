@@ -17,13 +17,14 @@ pid_t dummy_process_pid = NULL;
 
 void dummy_process() {
     while (1) {
-        // ncPrint("A");
         _hlt();
     }
 }
 
 void scheduler_init(Pipe * stdin) {
-    dummy_process_pid = create_process(dummy_process, 0, NULL);
+    char * name = "Kernel Task";
+    char * argv[] = {name};
+    dummy_process_pid = create_process(dummy_process, 1, argv);
     
     active->process.last_fd = 2;
     active->process.file_desciptors[0].mode = READ;
@@ -142,6 +143,14 @@ void copy_fd_table(fd_t src[], fd_t dest[], unsigned int qty) {
     }
 }
 
+char ** copy_argv(int argc, char ** argv) {
+    char ** new_argv = memory_manager_alloc(sizeof(char *) * argc);
+    for (int i = 0; i < argc; i++) {
+        new_argv[i] = strcpy(argv[i]);
+    }
+    return new_argv;
+}
+
 pid_t create_process(uint64_t rip, int argc, char * argv[]) {
     Node * new_process = memory_manager_alloc(sizeof(Node));
     new_process->process.pid = process_count++;
@@ -150,6 +159,8 @@ pid_t create_process(uint64_t rip, int argc, char * argv[]) {
     new_process->process.status = READY;
     new_process->process.blocked_queue = new_blocked_queue();
     new_process->process.new_priority = -1;
+    new_process->process.argc = argc;
+    new_process->process.argv = copy_argv(argc, argv);
     if (active != NULL) {
         new_process->process.last_fd = active->process.last_fd;
         copy_fd_table(active->process.file_desciptors, new_process->process.file_desciptors, new_process->process.last_fd);
@@ -349,6 +360,10 @@ int terminate_process(int return_value){
 
     active = current_process->next;
     process_ready_count--;
+    for (int i = 0; i < current_process->process.argc; i++) {
+        memory_manager_free(current_process->process.argv[i]);
+    }
+    memory_manager_free(current_process->process.argv);
     free_queue(current_process->process.blocked_queue);
     memory_manager_free(current_process->process.stack_base);
     memory_manager_free(current_process);
@@ -362,4 +377,36 @@ int change_priority(int priority_value){
     }
     active->process.new_priority = priority_value;
     return 0;
+}
+
+PCBInfo * process_info() {
+    PCBInfo * info = NULL;
+
+    Queue current = active;
+    while (current != NULL) {
+        PCBInfo * new_info = memory_manager_alloc(sizeof(PCBInfo));
+        new_info->name = strcpy(current->process.argv[0]);
+        new_info->pid = current->process.pid;
+        new_info->priority = current->process.priority;
+        new_info->status = current->process.status;
+        new_info->rsp = current->process.rsp;
+        new_info->rbp = current->process.rsp;
+        new_info->next = info;
+        info = new_info;
+        current = current->next;
+    }
+    current = expired;
+    while (current != NULL) {
+        PCBInfo * new_info = memory_manager_alloc(sizeof(PCBInfo));
+        new_info->name = strcpy(current->process.argv[0]);
+        new_info->pid = current->process.pid;
+        new_info->priority = current->process.priority;
+        new_info->status = current->process.status;
+        new_info->rsp = current->process.rsp;
+        new_info->rbp = current->process.rsp;
+        new_info->next = info;
+        info = new_info;
+        current = current->next;
+    }
+    return info;
 }
