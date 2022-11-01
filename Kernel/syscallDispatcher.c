@@ -7,7 +7,7 @@
 static uint64_t sys_read(unsigned int fd, char* output, uint64_t count);
 static void sys_write(unsigned fd, const char* buffer, uint64_t count);
 static pid_t sys_exec(uint64_t program, unsigned int argc, char * argv[]);
-static void sys_exit(int retValue);
+static void sys_exit(int retValue, char autokill);
 static pid_t sys_waitpid(pid_t pid);
 static int sys_nice(int new_priority);
 
@@ -45,7 +45,7 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
             return sys_exec(rdi, (unsigned int) rsi, (char **) rdx);
             break;
         case 4:
-            sys_exit((int) rdi);
+            sys_exit((int) rdi, 1);
             break;
         case 5:
             sys_time((time_t*)rdi);
@@ -144,7 +144,7 @@ static pid_t sys_exec(uint64_t program, unsigned int argc, char * argv[]){
     return create_process(program, argc, argv);
 }
 
-static void sys_exit(int return_value){
+static void sys_exit(int return_value, char autokill){
     PCB * pcb = get_process(get_current_pid());
     unsigned int last_fd = pcb->last_fd;
 
@@ -152,7 +152,7 @@ static void sys_exit(int return_value){
         sys_close(i);
     }
 
-    terminate_process(return_value);
+    terminate_process(return_value, autokill);
 }
 
 static pid_t sys_waitpid(pid_t pid) {
@@ -309,7 +309,9 @@ static int sys_kill(pid_t pid) {
     if (x == -1) {
         return -1;
     }
-    return terminate_process(0);
+
+    sys_exit(0, 0);
+    return 0;
 }
 
 static int sys_block_process(pid_t pid) {

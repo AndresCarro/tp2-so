@@ -46,7 +46,7 @@ int prepare_process_for_work(pid_t pid);
 
 void scheduler_init(Pipe * stdin);
 pid_t create_process(uint64_t rip, int argc, char * argv[]);
-int terminate_process(int return_value);
+int terminate_process(int return_value, char autokill);
 int block_process(pid_t process_pid);
 int unblock_process(pid_t process_pid);
 PCB * get_process(pid_t pid);

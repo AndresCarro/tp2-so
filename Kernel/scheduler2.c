@@ -358,7 +358,7 @@ uint64_t context_switch(uint64_t rsp) {
     return active->process.rsp;
 }
 
-int terminate_process(int return_value) {
+int terminate_process(int return_value, char autokill) {
     Node * current_process = active;
 
     pid_t blocked_pid;
@@ -367,7 +367,9 @@ int terminate_process(int return_value) {
     }
 
     active = current_process->next;
-    process_ready_count--;
+    if (current_process->process.status != BLOCKED) {
+        process_ready_count--;
+    }
     for (int i = 0; i < current_process->process.argc; i++) {
         memory_manager_free(current_process->process.argv[i]);
     }
@@ -375,7 +377,9 @@ int terminate_process(int return_value) {
     free_queue(current_process->process.blocked_queue);
     memory_manager_free(current_process->process.stack_base);
     memory_manager_free(current_process);
-    something_running = 0;
+    if (autokill) {
+        something_running = 0;
+    }
     return return_value;
 }
 

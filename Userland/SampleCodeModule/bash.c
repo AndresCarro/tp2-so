@@ -180,6 +180,32 @@ void test_mem_info() {
     fprintf(STDOUT, "Total: %d, Occupied: %d, Free: %d, Fragments: %d\n", info->memory_total, info->memory_occupied, info->memory_free, info->memory_frags);
 }
 
+void test_block2() {
+    while(1) {
+        putChar('B');
+        halt();
+    }
+}
+
+void test_block() {
+    char * name = "Test Block 2";
+    char * argv[] = {name};
+    pid_t pid = exec((uint64_t) test_block2, 1, argv);
+    int i = 0;
+    while (i < 100) {
+        putChar('A');
+        if (i == 10) {
+            block(pid);
+        } else if (i == 20) {
+            unblock(pid);
+        } else if (i == 40) {
+            kill(pid);
+        }
+        halt();
+        i++;
+    }
+}
+
 pm commandLine(char* buffer){
     if(strcmp(buffer,"time") == 0){
         putChar('\n');
@@ -237,14 +263,20 @@ pm commandLine(char* buffer){
         char * argv[] = {name, max_memory};
         pid_t pid = exec((uint64_t) test_mm, 2, argv);
         waitpid(pid);
-    } //else if (strcmp(buffer, "test processes") == 0) {
-    //     putChar('\n');
-    //     char * name = "Processes Test";
-    //     char * max_proc = "732";
-    //     char * argv[] = {name, max_proc};
-    //     pid_t pid = exec((uint64_t) test_processes2, 2, argv);
-    //     waitpid(pid);
-    // } 
+    } else if (strcmp(buffer, "test processes") == 0) {
+        putChar('\n');
+        char * name = "Processes Test";
+        char * max_proc = "5";
+        char * argv[] = {name, max_proc};
+        pid_t pid = exec((uint64_t) test_processes, 2, argv);
+        waitpid(pid);
+    } else if (strcmp(buffer, "test_p") == 0) {
+        putChar('\n');
+        char * name = "Our Processes Test";
+        char * argv[] = {name};
+        pid_t pid = exec((uint64_t) test_block, 1, argv);
+        waitpid(pid);
+    } 
     return NULL;
 }
 
