@@ -39,34 +39,6 @@ int gets(char * s){
     return i;
 }
 
-void getTime(){
-    time_t time;
-    char buffer[64] = {'0'};
-    sys_time(&time);
-
-    putChar('\n');
-    uintToBase(time.hours, buffer, 10);
-    puts(buffer);
-    putChar(':');
-    uintToBase(time.minutes, buffer, 10);
-    puts(buffer);
-    putChar(':');
-    uintToBase(time.seconds, buffer, 10);
-    puts(buffer);
-    putChar('\n');
-
-    uintToBase(time.day, buffer, 10);
-    puts(buffer);
-    putChar('/');
-    uintToBase(time.month, buffer, 10);
-    puts(buffer);
-    putChar('/');
-    uintToBase(time.year+2000, buffer, 10);
-    puts(buffer);
-    putChar('\n');
-    
-}
-
 char getChar(){
     char c;
     // while (sys_read(STDIN, &c, 1) == 0)
@@ -86,14 +58,6 @@ unsigned int charBelongs(char *s,char c){
         s++;
     }
     return 0;
-}
-
-void excepDivZero(){
-    div_zero();
-}
-
-void excepInvalidOpcode(){
-    inv_opcode();
 }
 
 //https://code.woboq.org/userspace/glibc/string/strcmp.c.html
@@ -141,66 +105,13 @@ static void reverse(char s[]){
      }
 }
 
-//Devuelve 1 si es primo, 0 si no lo es.
-int isPrime(int n)
-{
-	int i;
-	for(i=2;i<=n/2;i++)
-	{
-		if(n%i==0)
-			return 0;
-	}
-	return 1;
-}
-
-//Ciclo infinito que imprime numeros primos
-void printPrime(){
-    char num[30];
-    int i=2;
-    puts("Prime numbers: ");
-    puts("1,\n");
-    while(1){
-        if(isPrime(i)){
-            if(num<0){//por si se pasa del max integer
-                return;
-            }
-            itoa(i,num);
-            puts(num);
-            puts(",\n");
-        }
-        i++;
-        halt();
-    }
-}
-
-//Ciclo infinito que imprime numeros de secuencia de fibonacci
-void fibonacciNumbs(){
-    char num[30];
-    int t1 = 0, t2 = 1;
-    long nextTerm = t1 + t2;
-    puts("Fibonacci Series: 0, 1, ");
-    while(1) {
-        itoa(nextTerm,num);
-        puts(num);
-        puts(",");
-        t1 = t2;
-        t2 = nextTerm;
-        nextTerm = t1 + t2;
-        if(nextTerm<0){//por si se pasa del max integer
-            puts("\b");
-            return;
-        }
-        puts("\n");
-    }
-}
-
 char valueToHexChar(unsigned char value) {
     return value >= 10 ? (value - 10 + 'A') : (value + '0');
 } 
 
 //Checks the first occurence of p2 inside p1, return the index where p2 appears inside p1 or -1
 //if p2 isnt found inside p1
-int containsString(const char *p1,const char *p2){
+int contains_string(const char *p1,const char *p2){
     const unsigned char *s1 = (const unsigned char *) p1;
     const unsigned char *s2 = (const unsigned char *) p2;
     if(s2 == NULL)//if s2 is empty
@@ -236,7 +147,7 @@ void savePrintMemParams(char *s){
     address_str = s;
 }
 
-int checkPrintMemParams(char *s,uint64_t* address){
+int check_print_mem_params(char *s,uint64_t* address){
     *address = 0;
     uint64_t size = strlen(s);//le resto el "printmem"
     if(size<3 || size>11 || s[0]!='0' || s[1]!='x'){
@@ -273,7 +184,7 @@ void printmem(){
     uint8_t copy[32];
     uint64_t address;
 
-    if (!checkPrintMemParams(address_str, &address))
+    if (!check_print_mem_params(address_str, &address))
         return;
 
     sys_copymem(address, copy, 32);
@@ -287,25 +198,6 @@ void printmem(){
 		putChar(' ');
     }
     putChar(' ');
-}
-
-void inforeg(){
-    static char* registers[18] = { "R15", "R14", "R13", "R12", "R11", "R10", "R9 ", "R8 ", "RSI", "RDI", "RBP", "RDX", "RCX", "RBX", "RAX", "RIP", "RFL", "RSP" };
-
-    uint64_t regval[18];
-    int sysret = sys_getregs(regval);
-    if (sysret == 0){
-        puts("No registers to print.\n");
-        return;
-    } 
-    char buffer[64] = {'0'};
-    for(int i=0;i<18;i++){
-        puts(registers[i]);
-        puts(": 0x");
-        uintToBase(regval[i], buffer, 16);
-        puts(buffer);
-        putChar('\n');
-    }
 }
 
 //Tomado de x86-Barebones

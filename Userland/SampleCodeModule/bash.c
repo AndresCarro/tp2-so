@@ -4,9 +4,8 @@
 #define MAX_SIZE_CMD 32
 static char buffer[32];
 
-void help();
 int readInput();
-void unknownCommand();
+void unknown_command();
 void pipeManager();
 pm commandLine(char* buffer);
 
@@ -48,7 +47,7 @@ int readInput(){
     return sizeRead;
 }
 
-void unknownCommand(){
+void unknown_command(){
     puts("\nUnknown command: ");
     puts(buffer);
     putChar('\n');
@@ -77,13 +76,8 @@ void test_nice() {
     }
 }
 
-void prueba() {
-
-}
-
 void test_pipe_2() {
     while (1) {
-        prueba();
         puts("\nPipe 2 dice < ");
         char c = getChar();
         putChar(c);
@@ -112,7 +106,6 @@ void test_pipe() {
     
     dup2(fds[1], STDOUT);
     while (1) {
-        prueba();
         putChar('B');
     }
 }
@@ -210,114 +203,84 @@ void medium () {
     close(STDOUT);
     char * name = "Primes BCK";
     char * argv[] = {name};
-    pid_t prime_pid = exec(printPrime, 1, argv);
+    pid_t prime_pid = exec(print_prime, 1, argv);
     sys_exit(0);
 }
 
-void prueba1() {
-
-}
-
 pm commandLine(char* buffer){
+    putChar('\n');
     if(strcmp(buffer,"time") == 0){
-        putChar('\n');
-        return (pm)getTime;
-    }else if(strcmp(buffer,"prime") == 0){
-        putChar('\n');
-        return (pm)printPrime;
-    }else if(strcmp(buffer,"fibonacci") == 0){
-        putChar('\n');
-        return (pm)fibonacciNumbs;
-    }else if(strcmp(buffer,"inforeg") == 0){
-        putChar('\n');
-        return (pm)inforeg;
-    }else if(strcmp(buffer,"dividebyzero") == 0){
-        putChar('\n');
-        return (pm)excepDivZero;
-    }else if(strcmp(buffer,"help") == 0){
-        putChar('\n');
+        return (pm)get_time;
+    } else if (strcmp(buffer,"prime") == 0){
+        return (pm)print_prime;
+    } else if (strcmp(buffer,"fibonacci") == 0){
+        return (pm)fibonacci_numbs;
+    } else if (strcmp(buffer,"dividebyzero") == 0){
+        return (pm)excep_div_zero;
+    } else if (strcmp(buffer,"help") == 0){
         return (pm)help;
-    }else if(strcmp(buffer,"invalidopcode") == 0){
-        putChar('\n');
-        return (pm)excepInvalidOpcode;
-    }else if(containsString(buffer,"printmem") >= 0){
-        putChar('\n');
+    } else if (strcmp(buffer,"invalidopcode") == 0){
+        return (pm)excep_invalid_opcode;
+    } else if (contains_string(buffer,"printmem") >= 0){
         savePrintMemParams(buffer);
         return (pm)printmem;
-    }else if( (strcmp(buffer,"inforeg")) == 0){
-        putChar('\n');
-        return (pm)inforeg;
     } else if (strcmp(buffer, "test_nice") == 0) {
-        putChar('\n');
         return (pm) test_nice;
-    }  else if (strcmp(buffer, "test_pipes") == 0) {
-        putChar('\n');
+    } else if (strcmp(buffer, "test_pipes") == 0) {
         return (pm) test_pipe;
     } else if (strcmp(buffer, "test_close") == 0) {
-        putChar('\n');
         return (pm) test_close;
     } else if (strcmp(buffer, "test_pipe_info") == 0) {
-        putChar('\n');
         return (pm) test_pipe_info;
     } else if (strcmp(buffer, "test_sem_info") == 0) {
-        putChar('\n');
         return (pm) test_sem_info;
     } else if (strcmp(buffer, "test_process_info") == 0) {
-        putChar('\n');
         return (pm) test_process_info;
     } else if (strcmp(buffer, "mem info") == 0) {
-        putChar('\n');
         return (pm) test_mem_info;
     } else if (strcmp(buffer, "test mm") == 0) {
-        putChar('\n');
         char * name = "Memory Test";
         char * max_memory = "17000000";
         char * argv[] = {name, max_memory};
         pid_t pid = exec((uint64_t) test_mm, 2, argv);
         waitpid(pid);
     } else if (strcmp(buffer, "test processes") == 0) {
-        putChar('\n');
         char * name = "Processes Test";
         char * max_proc = "5";
         char * argv[] = {name, max_proc};
         pid_t pid = exec((uint64_t) test_processes, 2, argv);
         waitpid(pid);
     } else if (strcmp(buffer, "test_p") == 0) {
-        putChar('\n');
         char * name = "Our Processes Test";
         char * argv[] = {name};
         pid_t pid = exec((uint64_t) test_block, 1, argv);
         waitpid(pid);
     } else if (strcmp(buffer, "test_prio") == 0) {
-        putChar('\n');
         char * name = "Priorities aGODio Test";
         char * argv[] = {name};
         pid_t pid = exec((uint64_t) test_prio, 1, argv);
         waitpid(pid);
     } else if (strcmp(buffer, "test_sync_with_sem") == 0) {
-        putChar('\n');
         char * name = "Sync aGODio Test with sem";
         char * argv[] = {name, "10", "1"};
         pid_t pid = exec((uint64_t) test_sync, 3, argv);
         waitpid(pid);
     } else if (strcmp(buffer, "test_sync_without_sem") == 0) {
-        prueba1();
-        putChar('\n');
         char * name = "Sync aGODio Test without sem";
         char * argv[] = {name, "60", "0"};
         pid_t pid = exec((uint64_t) test_sync, 3, argv);
         exec((uint64_t) medium, 3, argv);
         waitpid(pid);
     } else if (strcmp(buffer, "pb") == 0) {
-        prueba1();
-        putChar('\n');
         char * name = "Primes SCREEN";
         char * name2 = "Primes BCK";
         char * argv[] = {name};
         char * argv2[] = {name2};
-        pid_t pid = exec((uint64_t) printPrime, 1, argv);
+        pid_t pid = exec((uint64_t) print_prime, 1, argv);
         exec((uint64_t) medium, 1, argv2);
         waitpid(pid);
+    } else {
+        unknown_command(buffer);
     }
     return NULL;
 }
@@ -351,27 +314,3 @@ pm commandLine(char* buffer){
 //     }
 //     sys_execve((void(*)())fun1,(void(*)())fun2);
 // }
-
-void help(){
-    const char* helpstring = 
-    "help                 Provides help information for commands.\n"
-	"dividebyzero         Command to verify the operation of the exception routine\n"
-    "                     \"Divide by zero\"\n"
-    "invalidopcode        Command to verify the operation of the exception routine\n"
-    "                     \"Invalid Opcode\"\n"
-	"inforeg              CTRL+C takes a screenshot of registers, inforeg prints on\n"
-    "                     screen the value of all registers screenshoted.\n"
-	"printmem             Receives as argument a pointer and performs a memory dump\n"
-    "                     of 32 bytes from the address received as an argument.\n"
-    "                     Format for address has to start with 0x and be followed up\n"
-    "                     with the actual address written in hex.\n"
-	"time                 Command to display the system day and time.\n"
-    "prime                Dispalys prime numbers starting from 1.\n"
-    "fibonacci            Dispalys fibonacci series numbers.\n"
-    "COMMAND1|COMMAND2    The \"|\" operand allows the execution of multiple commands\n"
-    "                     at the same time. CTRL+L and CTRL+R stops and resumes left\n"
-    "                     and right windows. CTRL+E stops both windows and returns\n"
-    "                     to console.\n";
-    
-    puts(helpstring);
-}

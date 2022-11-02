@@ -1,6 +1,5 @@
 GLOBAL sys_write
 GLOBAL sys_read
-GLOBAL sys_getregs
 GLOBAL sys_exit
 GLOBAL exec
 GLOBAL waitpid
@@ -50,15 +49,6 @@ sys_read:
     mov rax, 0
     int 0x80
     mov rsp,rbp
-    pop rbp
-    ret
-
-sys_getregs:
-    push rbp
-    mov rbp, rsp
-    mov rax, 2
-    int 0x80
-    mov rsp, rbp
     pop rbp
     ret
 

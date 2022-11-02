@@ -40,7 +40,7 @@ uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t ra
         case 1:
             sys_write((unsigned int)rdi, (char*)rsi,rdx);
             break;
-        case 2:
+        case 2://TODO BORRAR LADO KERNEL
             return (uint64_t) getRegisters((uint64_t *)rdi);
             break;
         case 3:

@@ -4,6 +4,11 @@
 #include <defs.h>
 #include <stdint.h>
 #include <general_info.h>
+#include <primes.h>
+#include <help.h>
+#include <invalid_opcode.h>
+#include <exception_div_zero.h>
+#include <get_time.h>
 
 #define NULL (void*)0
 
@@ -18,20 +23,10 @@ typedef ptr (*pm)();
 
 #define EOF -1
 
-typedef struct {
-    uint8_t day, month, year;
-    uint8_t hours, minutes, seconds;
-} time_t;
-
 typedef uint64_t sem_t;
 
 int sys_write(int fd, const char *buffer, int size);
 int sys_read(int fd,char * buffer,int size);
-void sys_time(time_t * time);
-int sys_getregs(uint64_t * registers);
-void inv_opcode();
-void div_zero();
-void sys_execve(void (*f1)(), void (*f2)());
 void sys_copymem(uint64_t address, uint8_t * buffer, uint64_t length);
 
 pid_t exec(uint64_t program, unsigned int argc, char * argv[]);
@@ -48,8 +43,6 @@ void dup2(int oldfd, int newfd);
 void close(int fd);
 
 unsigned int strlen(const char *s);
-void excepDivZero();
-void excepInvalidOpcode();
 int puts(const char* s);
 int putChar(char);
 char getChar();
@@ -58,11 +51,7 @@ unsigned int charBelongs(char *s,char c);
 int containsString(const char *p1,const char *p2);
 void savePrintMemParams(char *s);
 int strcmp (const char *p1, const char *p2);
-void getTime();
-void printPrime();
-void fibonacciNumbs();
 void printmem();
-void inforeg();
 uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base);
 int atoi(char * str);
 void itoa(int n, char s[]);
