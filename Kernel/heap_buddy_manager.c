@@ -58,7 +58,6 @@ void memory_manager_start(void * start_address, uint64_t size_heap) {
     used_memory = 0;
     memeory_fragments = 0;
 
-
     for (int i = 0; i < MAX_NODES; ++i) {
         buddies[i].status = FREE;
         buddies[i].occupied_children = 0;
@@ -126,15 +125,14 @@ void set_status(unsigned int index, unsigned int new_status) {
 }
 
 void * obtain_address(unsigned int index, unsigned int level) {
-    // void * return_address = heap_start;
+    void * return_address = heap_start;
 
-    // unsigned int buddy_diff_index = index - get_first_index_for_level(level);
-    // unsigned int buddy_size = (1 << level);
+    uint64_t buddy_diff_index = index - get_first_index_for_level(level);
+    uint64_t buddy_size = (1 << level);
 
-    // return_address += (buddy_diff_index * buddy_size);
+    return_address += (buddy_diff_index * buddy_size);
 
-    // return return_address;
-    return heap_start + (index - get_first_index_for_level(level)) * (1 << level);
+    return return_address;
 }
 
 void * memory_manager_alloc( uint64_t size ) {
@@ -178,7 +176,6 @@ int search_node(int index, int* level, void* ptr) {
         return index;
     }
     return -1;
-    // return ptr == address_by_level_and_index(index, *level) ? index : -1;
 }
 
 

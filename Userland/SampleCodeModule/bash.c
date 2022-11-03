@@ -272,6 +272,8 @@ pm commandLine(char* buffer){
         putChar('\n');
         char * name = "Memory Test";
         char * max_memory = "17000000";
+        //char * max_memory = "4999999";
+        //char * max_memory = "20000000";
         char * argv[] = {name, max_memory};
         pid_t pid = exec((uint64_t) test_mm, 2, argv);
         waitpid(pid);
