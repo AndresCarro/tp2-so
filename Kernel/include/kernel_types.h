@@ -83,7 +83,7 @@ typedef struct {
 
 /* Semaphores */
 typedef struct {
-    const char * name;
+    char * name;
     uint8_t value;
     uint8_t lock;
     unsigned int linked_processes;

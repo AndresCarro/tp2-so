@@ -11,8 +11,8 @@
 #include <blocked_queue.h>
 #include <lib.h>
 
-static uint64_t sys_read(unsigned int fd, char* output, uint64_t count);
-static void sys_write(unsigned fd, const char* buffer, uint64_t count);
+static uint64_t sys_read(unsigned int fd, char * output, uint64_t count);
+static int sys_write(unsigned fd, char * buffer, uint64_t count);
 
 static pid_t sys_exec(uint64_t program, unsigned int argc, char * argv[]);
 static void sys_exit(int retValue, char autokill);
@@ -49,58 +49,58 @@ static void sys_time(time_t * s);
 uint64_t syscall_dispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rax){
     switch(rax) {
         case 0:
-            return sys_read((unsigned int) rdi, (char *) rsi, rdx);
+            return (uint64_t) sys_read((unsigned int) rdi, (char *) rsi, rdx);
             break;
         case 1:
-            sys_write((unsigned int) rdi, (char *) rsi, rdx);
+            return (uint64_t) sys_write((unsigned int) rdi, (char *) rsi, rdx);
             break;
         case 2:
-            return sys_exec(rdi, (unsigned int) rsi, (char **) rdx);
+            return (uint64_t) sys_exec(rdi, (unsigned int) rsi, (char **) rdx);
             break;
         case 3:
             sys_exit((int) rdi, 1);
             break;
         case 4:
-            return sys_getpid();
+            return (uint64_t) sys_getpid();
             break;
         case 5:
-            return sys_waitpid((pid_t) rdi);
+            return (uint64_t) sys_waitpid((pid_t) rdi);
             break;
         case 6:
-            return sys_yield_process();
+            return (uint64_t) sys_yield_process();
             break;
         case 7:
-            return sys_block_process((pid_t) rdi);
+            return (uint64_t) sys_block_process((pid_t) rdi);
             break;
         case 8:
-            return sys_unblock_process((pid_t) rdi);
+            return (uint64_t) sys_unblock_process((pid_t) rdi);
             break;
         case 9:
-            return sys_kill((pid_t) rdi);
+            return (uint64_t) sys_kill((pid_t) rdi);
             break;
         case 10:
-            return sys_nice((pid_t) rdi, (int) rsi);
+            return (uint64_t) sys_nice((pid_t) rdi, (int) rsi);
             break;
         case 11:
-            return sys_malloc(rdi);
+            return (uint64_t) sys_malloc(rdi);
             break;
         case 12:
             sys_free(rdi);
             break;
         case 13:
-            return sys_sem_open((char *) rdi, (uint8_t) rsi);
+            return (uint64_t) sys_sem_open((char *) rdi, (uint8_t) rsi);
             break;
         case 14:
             sys_sem_close((sem_t) rdi);
             break;
         case 15:
-            return sys_sem_wait((sem_t) rdi);
+            return (uint64_t) sys_sem_wait((sem_t) rdi);
             break;
         case 16:
-            return sys_sem_post((sem_t) rdi);
+            return (uint64_t) sys_sem_post((sem_t) rdi);
             break;
         case 17:
-            return sys_pipe((int *) rdi);
+            return (uint64_t) sys_pipe((int *) rdi);
             break;
         case 18:
             sys_dup2((int) rdi, (int) rsi);
@@ -109,16 +109,16 @@ uint64_t syscall_dispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t r
             sys_close((int) rdi);
             break;
         case 20:
-            return sys_get_mem_info();
+            return (uint64_t) sys_get_mem_info();
             break;
         case 21:
-            return sys_get_pipe_info();
+            return (uint64_t) sys_get_pipe_info();
             break;
         case 22:
-            return sys_get_sem_info();
+            return (uint64_t) sys_get_sem_info();
             break;
         case 23:
-            return sys_get_process_info();
+            return (uint64_t) sys_get_process_info();
             break;
         case 24:
             sys_time((time_t *) rdi);
@@ -140,20 +140,20 @@ static uint64_t sys_read(unsigned int fd, char * output, uint64_t count) {
     return pipe_read(table[fd].pipe, output, count);
 }
 
-static void sys_write(unsigned fd, const char * buffer, uint64_t count) {
+static int sys_write(unsigned fd, char * buffer, uint64_t count) {
     PCB * pcb = get_process(get_current_pid());
     fd_t * table = pcb->file_desciptors;
     unsigned int last_fd = pcb->last_fd;
 
     if (fd >= last_fd || table[fd].mode != WRITE) {
-        return;
+        return -1;
     }
 
     if (fd == STDOUT && table[fd].pipe == NULL) {
         for (int i = 0; i < count; i++) {
             print_char(buffer[i]);
         }
-        return;
+        return count;
     }
     return pipe_write(table[fd].pipe, buffer, count);
 }

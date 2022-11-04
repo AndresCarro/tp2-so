@@ -25,7 +25,7 @@ SemNode * find_semaphore(char * name, SemNode ** previous_sem) {
     return NULL;
 }
 
-sem_t sem_open(const char * name, uint8_t initial_value) {
+sem_t sem_open(char * name, uint8_t initial_value) {
     SemNode * sem = find_semaphore(name, NULL);
 
     if (sem != NULL) {

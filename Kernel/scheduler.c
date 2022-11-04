@@ -26,7 +26,7 @@ void dummy_process() {
 void scheduler_init(Pipe * stdin) {
     char * name = "Kernel Task";
     char * argv[] = {name};
-    dummy_process_pid = create_process(dummy_process, 1, argv);
+    dummy_process_pid = create_process((uint64_t) dummy_process, 1, argv);
     
     active->process.last_fd = 2;
     active->process.file_desciptors[0].mode = READ;
@@ -40,22 +40,18 @@ void scheduler_init(Pipe * stdin) {
 
 PCB * get_process(pid_t pid) {
     Node * current = active;
-    Node * previous = NULL;
     while (current != NULL) {
         if (current->process.pid == pid) {
             return &(current->process);
         } else {
-            previous = current;
             current = current->next;
         }
     }
     current = expired;
-    previous = NULL;
     while (current != NULL) {
         if (current->process.pid == pid) {
             return &(current->process);
         } else {
-            previous = current;
             current = current->next;
         }
     }
@@ -71,7 +67,6 @@ pid_t get_current_pid() {
 
 int unblock_process(pid_t process_pid) {
     Node * current = active;
-    Node * previous = NULL;
     char found = 0;
 
     while (!found && current != NULL) {
@@ -79,18 +74,15 @@ int unblock_process(pid_t process_pid) {
             found = 1;
             current->process.status = READY;
         } else {
-            previous = current;
             current = current->next;
         }
     }
     current = expired;
-    previous = NULL;
     while (!found && current != NULL) {
         if (current->process.pid == process_pid) {
             found = 1;
             current->process.status = READY;
         } else {
-            previous = current;
             current = current->next;
         }
     }
@@ -103,7 +95,6 @@ int unblock_process(pid_t process_pid) {
 
 int block_process(pid_t process_pid) {
     Node * current = active;
-    Node * previous = NULL;
     char found = 0;
 
     while (!found && current != NULL) {
@@ -111,18 +102,15 @@ int block_process(pid_t process_pid) {
             found = 1;
             current->process.status = BLOCKED;
         } else {
-            previous = current;
             current = current->next;
         }
     }
     current = expired;
-    previous = NULL;
     while (!found && current != NULL) {
         if (current->process.pid == process_pid) {
             found = 1;
             current->process.status = BLOCKED;
         } else {
-            previous = current;
             current = current->next;
         }
     }
@@ -165,13 +153,13 @@ pid_t create_process(uint64_t rip, int argc, char * argv[]) {
         copy_fd_table(active->process.file_desciptors, new_process->process.file_desciptors, new_process->process.last_fd);
     }
     
-    uint64_t rsp = memory_manager_alloc(4*1024);
-    if(rsp == NULL) {
+    uint64_t rsp = (uint64_t) memory_manager_alloc(4*1024);
+    if(rsp == 0) {
         return -1;
     }
     new_process->process.stack_base = rsp;
 
-    uint64_t new_rsp = load_process(rip, rsp + 4 * 1024, argc, argv);
+    uint64_t new_rsp = load_process(rip, rsp + 4 * 1024, argc, (uint64_t) argv);
     new_process->process.rsp = new_rsp;
     
     if (active == NULL) {
@@ -338,7 +326,7 @@ int terminate_process(int return_value, char autokill) {
     }
     memory_manager_free(current_process->process.argv);
     free_queue(current_process->process.blocked_queue);
-    memory_manager_free(current_process->process.stack_base);
+    memory_manager_free((void *) current_process->process.stack_base);
     memory_manager_free(current_process);
     if (autokill) {
         something_running = 0;

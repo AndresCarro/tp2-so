@@ -17,7 +17,7 @@ uint8_t local_day() {
     if (get_hours() <= 3) {
         if (day == 1) {
             uint8_t year = get_year();
-            char leap_year = 0;
+            int leap_year = 0;
             if (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)) {
                 leap_year = 1;
             }

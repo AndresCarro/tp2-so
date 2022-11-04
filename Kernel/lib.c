@@ -73,7 +73,7 @@ unsigned int strlen(const char *str) {
     return len;
 }
 
-char * strcpy(char * str) {
+char * strcpy(const char * str) {
 	unsigned int len = strlen(str);
 	char * new_str = memory_manager_alloc(len+1);
 	if (new_str != NULL) {
