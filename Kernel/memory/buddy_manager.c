@@ -1,6 +1,9 @@
 #ifdef BUDDY_MM
 
 #include <memory_manager.h>
+#include <lib.h>
+
+#define MEM_ALGORITHM "Buddy"
 
 #define MAX_LEVEL 23
 #define MIN_LEVEL 8
@@ -14,7 +17,6 @@
 #define TAKEN 1
 #define ALLOC 1
 #define DEALLOC -1
-
 
 uint64_t total_memory;
 uint64_t used_memory;
@@ -203,6 +205,7 @@ void memory_manager_free(void * ptr) {
 
 MemInfo * mem_info() {
     MemInfo * info = memory_manager_alloc(sizeof(MemInfo));
+    info->mem_algorithm = strcpy(MEM_ALGORITHM);
     info->memory_total = total_memory;
     info->memory_occupied = used_memory;
     info->memory_free = total_memory - used_memory;

@@ -177,7 +177,7 @@ void test_process_info() {
 
 void test_mem_info() {
     MemInfo * info = mem_info();
-    fprintf(STDOUT, "Total: %d, Occupied: %d, Free: %d, Fragments: %d\n", info->memory_total, info->memory_occupied, info->memory_free, info->memory_frags);
+    fprintf(STDOUT, "Type: %s, Total: %d, Occupied: %d, Free: %d, Fragments: %d\n", info->mem_algorithm, info->memory_total, info->memory_occupied, info->memory_free, info->memory_frags);
 }
 
 void test_block2() {
@@ -271,9 +271,9 @@ pm commandLine(char* buffer){
     } else if (strcmp(buffer, "test mm") == 0) {
         putChar('\n');
         char * name = "Memory Test";
-        char * max_memory = "17000000";
-        //char * max_memory = "4999999";
-        //char * max_memory = "20000000";
+        // char * max_memory = "17000000";
+        char * max_memory = "4999999";
+        // char * max_memory = "20000000";
         char * argv[] = {name, max_memory};
         pid_t pid = exec((uint64_t) test_mm, 2, argv);
         waitpid(pid);

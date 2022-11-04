@@ -47,6 +47,7 @@ typedef struct seminfo {
 } SemInfo;
 
 typedef struct meminfo {
+    char * mem_algorithm;
     uint64_t memory_free;
     uint64_t memory_occupied;
     uint64_t memory_total;
