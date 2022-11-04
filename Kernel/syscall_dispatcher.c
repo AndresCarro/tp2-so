@@ -291,7 +291,7 @@ static void sys_dup2(int old, int new) {
     fd_t * table = pcb->file_desciptors;
     unsigned int last_fd = pcb->last_fd;
 
-    if (old >= last_fd || new >= last_fd || table[old].mode == CLOSED || table[new].mode == CLOSED) {
+    if (old >= last_fd || new >= last_fd || table[old].mode == CLOSED) {
         return;
     }
     table[new].mode = table[old].mode;

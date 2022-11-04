@@ -116,7 +116,11 @@ void keyboard_handler() {
     uint16_t key = scancode & 0x7F;
 
     if (pressed(scancode, key)) {
-        add(translate(key));
+        if (control && key == 32) { // Ctrl + D
+            add(-1);
+        } else {
+            add(translate(key));
+        }
     }
 }
 

@@ -37,8 +37,20 @@ void pipe_inherited(Pipe * pipe, char for_write) {
 void pipe_close(Pipe * pipe, char close_write_end) {
     if (close_write_end) {
         pipe->open_for_write--;
+        if (pipe->open_for_write == 0) {
+            pid_t pid;
+            while ((pid = dequeue_pid(pipe->blocked_in_write)) != -1) {
+                unblock_process(pid);
+            }
+        }
     } else {
         pipe->open_for_read--;
+        if (pipe->open_for_read == 0) {
+            pid_t pid;
+            while ((pid = dequeue_pid(pipe->blocked_in_read)) != -1) {
+                unblock_process(pid);
+            }
+        }
     }
     
     if (pipe->open_for_read == 0 && pipe->open_for_write == 0) {
@@ -83,7 +95,11 @@ int pipe_write(Pipe * p, char * str, int length) {
 }
 
 int pipe_read(Pipe * p, char * str, int length) {
-    while (p->read_offset == p->write_offset && p->open_for_write) {
+    while (p->read_offset == p->write_offset) {
+        if (p->open_for_write == 0) {
+            str[0] = -1;
+            return 0;
+        }
         pid_t pid = get_current_pid();
         enqueue_pid(p->blocked_in_read, pid);
         block_process(pid);

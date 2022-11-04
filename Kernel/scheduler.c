@@ -126,7 +126,9 @@ void copy_fd_table(fd_t src[], fd_t dest[], unsigned int qty) {
     for (int i = 0; i < qty; i++) {
         dest[i].mode = src[i].mode;
         dest[i].pipe = src[i].pipe;
-        pipe_inherited(dest[i].pipe, dest[i].mode == WRITE ? 1 : 0);
+        if (src[i].mode != CLOSED) {
+            pipe_inherited(dest[i].pipe, dest[i].mode == WRITE ? 1 : 0);
+        }
     }
 }
 
@@ -159,7 +161,7 @@ pid_t create_process(uint64_t rip, int argc, char * argv[]) {
     }
     new_process->process.stack_base = rsp;
 
-    uint64_t new_rsp = load_process(rip, rsp + 4 * 1024, argc, (uint64_t) argv);
+    uint64_t new_rsp = load_process(rip, rsp + 4 * 1024, new_process->process.argc, (uint64_t) new_process->process.argv);
     new_process->process.rsp = new_rsp;
     
     if (active == NULL) {
