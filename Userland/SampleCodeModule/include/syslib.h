@@ -9,6 +9,11 @@
 #include <invalid_opcode.h>
 #include <exception_div_zero.h>
 #include <get_time.h>
+#include <print_mem_info.h>
+#include <print_process_info.h>
+#include <print_sem_info.h>
+#include <print_pipe_info.h>
+#include <loop.h>
 
 #define NULL (void*)0
 
@@ -44,14 +49,12 @@ void close(int fd);
 
 unsigned int strlen(const char *s);
 int puts(const char* s);
-int putChar(char);
-char getChar();
+int put_char(char);
+char get_char();
 int gets(char * s);
-unsigned int charBelongs(char *s,char c);
+unsigned int char_belongs(char *s,char c);
 int containsString(const char *p1,const char *p2);
-void savePrintMemParams(char *s);
 int strcmp (const char *p1, const char *p2);
-void printmem();
 uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base);
 int atoi(char * str);
 void itoa(int n, char s[]);

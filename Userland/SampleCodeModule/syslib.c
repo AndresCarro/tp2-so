@@ -15,42 +15,41 @@ int puts(const char * str){
     return sys_write(STDOUT, str, len);
 }
 
-int putChar(char c){
+int put_char(char c){
     return sys_write(STDOUT, &c, 1);
 }
 
 int gets(char * s){
-    int i = 0, c = getChar();
+    int i = 0, c = get_char();
     while (c != '\n' && c != EOF)
     {
         s[i] = c;
         if(s[i] == '\b' && i > 0){
             i--;
-            putChar(c);
+            put_char(c);
         }else if(s[i] == '\b' && i == 0 ){
             //no hago nada
         }else{
             i++;
-            putChar(c);
+            put_char(c);
         }
-        c = getChar();
+        c = get_char();
     }
     s[i] = '\0';
     return i;
 }
 
-char getChar(){
+char get_char(){
     char c;
-    // while (sys_read(STDIN, &c, 1) == 0)
-    // {
-    //     ;
-    // }
     sys_read(STDIN, &c, 1);
+    if(c == 0){
+        return EOF;
+    }
     return c;
 }
 
 //Retorna 1 si lo encuentra, 0 sino
-unsigned int charBelongs(char *s,char c){
+unsigned int char_belongs(char *s,char c){
     while(*s != '\0'){
         if(*s == c){
             return 1;
@@ -138,66 +137,6 @@ int contains_string(const char *p1,const char *p2){
         return i;
     }
     return -1;
-}
-
-static char * address_str;
-
-void savePrintMemParams(char *s){
-    s+=8;//skip printmem chars
-    address_str = s;
-}
-
-int check_print_mem_params(char *s,uint64_t* address){
-    *address = 0;
-    uint64_t size = strlen(s);//le resto el "printmem"
-    if(size<3 || size>11 || s[0]!='0' || s[1]!='x'){
-		puts("\nIncorrect address format\n");
-        return 0;
-    }	
-    unsigned int i=2;
-    while(s[i] != '\0' && i < 12){
-        if((s[i] < '0' || s[i] > '9') && (s[i] < 'a' || s[i] > 'f')){
-			puts("\nAddress can't be accesed\n");
-            return -1;
-        }
-        if(s[i]>='0' && s[i]<='9'){
-			*address *= 16;
-			*address += s[i]-'0';
-		}
-		else if(s[i]>='a' && s[i]<='f'){
-			if(i == 10){
-				puts("\nAddress can't be accesed\n");
-				return -1;
-			}else if(i == 11 && s[i-1] == '9' && s[i] > 'b'){
-				puts("\nAddress can't be accesed\n");
-				return -1;
-			}
-			*address *= 16;
-			*address += s[i]-'a'+10;
-		}
-        i++;
-    }
-    return 1;
-}
-
-void printmem(){
-    uint8_t copy[32];
-    uint64_t address;
-
-    if (!check_print_mem_params(address_str, &address))
-        return;
-
-    sys_copymem(address, copy, 32);
-
-    for(int i=0; i<32 ; i++){
-        if(i%8==0)
-		    putChar('\n');
-		putChar(valueToHexChar(copy[i]>>4));
-		putChar(valueToHexChar(copy[i]&0x0F));
-		putChar(' ');
-		putChar(' ');
-    }
-    putChar(' ');
 }
 
 //Tomado de x86-Barebones

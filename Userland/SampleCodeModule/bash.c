@@ -2,21 +2,24 @@
 #include <processes.h>
 
 #define MAX_SIZE_CMD 32
-static char buffer[32];
 
-int readInput();
+static char buffer[32];
+static pm fun1 = NULL;
+static pm fun2 = NULL;
+
+int read_input();
 void unknown_command();
-void pipeManager();
-pm commandLine(char* buffer);
+void pipe_panager();
+pm command_line(char* buffer);
 
 extern void halt();
 
 void bash() {
     int i=0;
     while(i != -1){
-        puts("Horac.IO:$ ");
-        i = readInput();
-        putChar('\n');
+        puts("Agodn't.IO:$ ");
+        i = read_input();
+        put_char('\n');
     }
 }
 
@@ -26,16 +29,16 @@ PROCESO INTERMEDIO -> DUP -> EXEC A PROCESO HIJO -> EXIT()
 PROCESO HIJO -> CORRE
 */
 
-int readInput(){
-    int sizeRead = gets(buffer);
+int read_input(){
+    int size_read = gets(buffer);
     if(strcmp(buffer,"exit") == 0){
-        puts("\nGoodbye\n");
+        puts("\nGoodbye :D\n");
         return -1;
-    }else if(charBelongs(buffer,'|')){
-        putChar('\n');
-        // pipeManager();
+    }else if(char_belongs(buffer,'|')){
+        put_char('\n');
+        pipe_manager();
     }else{
-        pm fun = commandLine(buffer);
+        pm fun = command_line(buffer);
         if(fun != NULL){
             char * name = "Funcion";
             char * argv[] = {name}; // TODO HAY QUE ARREGLAR ESTO
@@ -44,19 +47,19 @@ int readInput(){
         }
     }
     //etc, para los distintos comandos a implementar
-    return sizeRead;
+    return size_read;
 }
 
 void unknown_command(){
     puts("\nUnknown command: ");
     puts(buffer);
-    putChar('\n');
+    put_char('\n');
 }
 
 void test_nice2() {
     sem_t sem = sem_open("prueba", 0);
     for (int i = 0; i < 100; i++) {
-		putChar('B');
+		put_char('B');
 		if (i == 50) {
 			sem_post(sem);
 		}
@@ -71,7 +74,7 @@ void test_nice() {
     sem_t sem = sem_open("prueba", 0);
 	sem_wait(sem);
     while (1) {
-        putChar('C');
+        put_char('C');
         halt();
     }
 }
@@ -79,8 +82,8 @@ void test_nice() {
 void test_pipe_2() {
     while (1) {
         puts("\nPipe 2 dice < ");
-        char c = getChar();
-        putChar(c);
+        char c = get_char();
+        put_char(c);
         puts(">");
     }
 }
@@ -106,7 +109,7 @@ void test_pipe() {
     
     dup2(fds[1], STDOUT);
     while (1) {
-        putChar('B');
+        put_char('B');
     }
 }
 
@@ -159,23 +162,9 @@ void test_sem_info() {
 	sem_wait(sem);
 }
 
-void test_process_info() {
-    PCBInfo * info = process_info();
-    char * status[] = {"Ready", "Blocked", "Terminated"};
-    while (info != NULL) {
-        fprintf(STDOUT, "Name: %s, PID: %d, RSP: 0x%x, RBP: 0x%x, Priority: %d, Status: %s\n", info->name, info->pid, info->rsp, info->rbp, info->priority, status[info->status]);
-        info = info->next;
-    }
-}
-
-void test_mem_info() {
-    MemInfo * info = mem_info();
-    fprintf(STDOUT, "Total: %d, Occupied: %d, Free: %d, Fragments: %d\n", info->memory_total, info->memory_occupied, info->memory_free, info->memory_frags);
-}
-
 void test_block2() {
     while(1) {
-        putChar('B');
+        put_char('B');
         halt();
     }
 }
@@ -186,7 +175,7 @@ void test_block() {
     pid_t pid = exec((uint64_t) test_block2, 1, argv);
     int i = 0;
     while (i < 100) {
-        putChar('A');
+        put_char('A');
         if (i == 10) {
             block(pid);
         } else if (i == 20) {
@@ -207,8 +196,8 @@ void medium () {
     sys_exit(0);
 }
 
-pm commandLine(char* buffer){
-    putChar('\n');
+pm command_line(char* buffer){
+    put_char('\n');
     if(strcmp(buffer,"time") == 0){
         return (pm)get_time;
     } else if (strcmp(buffer,"prime") == 0){
@@ -221,9 +210,6 @@ pm commandLine(char* buffer){
         return (pm)help;
     } else if (strcmp(buffer,"invalidopcode") == 0){
         return (pm)excep_invalid_opcode;
-    } else if (contains_string(buffer,"printmem") >= 0){
-        savePrintMemParams(buffer);
-        return (pm)printmem;
     } else if (strcmp(buffer, "test_nice") == 0) {
         return (pm) test_nice;
     } else if (strcmp(buffer, "test_pipes") == 0) {
@@ -234,10 +220,10 @@ pm commandLine(char* buffer){
         return (pm) test_pipe_info;
     } else if (strcmp(buffer, "test_sem_info") == 0) {
         return (pm) test_sem_info;
-    } else if (strcmp(buffer, "test_process_info") == 0) {
-        return (pm) test_process_info;
-    } else if (strcmp(buffer, "mem info") == 0) {
-        return (pm) test_mem_info;
+    } else if (strcmp(buffer, "ps") == 0) {
+        return (pm) print_process_info;
+    } else if (strcmp(buffer, "mem") == 0) {
+        return (pm) print_mem_info;
     } else if (strcmp(buffer, "test mm") == 0) {
         char * name = "Memory Test";
         char * max_memory = "17000000";
@@ -279,38 +265,93 @@ pm commandLine(char* buffer){
         pid_t pid = exec((uint64_t) print_prime, 1, argv);
         exec((uint64_t) medium, 1, argv2);
         waitpid(pid);
+    } else if (strcmp(buffer, "wc") == 0) {
+        return (pm) wc;
+    } else if (strcmp(buffer, "loop") == 0) {
+        return (pm) loop;
+    } else if (contains_string(buffer, "kill") == 0) {
+
+        return (pm) loop;
+    } else if (strcmp(buffer, "sem") == 0) {
+        return (pm) print_sem_info;
+    } else if (strcmp(buffer, "pipe") == 0) {
+        return (pm) print_pipe_info;
     } else {
         unknown_command(buffer);
     }
     return NULL;
 }
 
-// void pipeManager(){
-//     char cmd1[MAX_SIZE_CMD],cmd2[MAX_SIZE_CMD];
-//     unsigned int i=0;
-//     while(buffer[i] != '|' && i < MAX_SIZE_CMD){
-//         cmd1[i] = buffer[i];
-//         i++;
-//     }
-//     if(i == MAX_SIZE_CMD){
-//         unknownCommand(cmd1);
-//         return;
-//     }
-//     cmd1[i] = '\0';
-//     i++;//como estoy parado en la '|' paso al siguiente
-//     unsigned int j=0;
-//     while(buffer[i] != '\0' && j < MAX_SIZE_CMD){
-//         cmd2[j++] = buffer[i++];
-//     }
-//     if(j == MAX_SIZE_CMD){
-//         unknownCommand(cmd2);
-//         return;
-//     }
-//     cmd2[j] = '\0';
-//     pm fun1 = commandLine(cmd1);
-//     pm fun2 = commandLine(cmd2);
-//     if(fun1 == NULL || fun2 == NULL){
-//         return;
-//     }
-//     sys_execve((void(*)())fun1,(void(*)())fun2);
-// }
+void pipe_manager(){
+    char cmd1[MAX_SIZE_CMD],cmd2[MAX_SIZE_CMD];
+    unsigned int i=0;
+    while(buffer[i] != '|' && i < MAX_SIZE_CMD){
+        cmd1[i] = buffer[i];
+        i++;
+    }
+    if(i == MAX_SIZE_CMD){
+        unknown_command(cmd1);
+        return;
+    }
+    cmd1[i] = '\0';
+    i++;//como estoy parado en la '|' paso al siguiente
+    unsigned int j=0;
+    while(buffer[i] != '\0' && j < MAX_SIZE_CMD){
+        cmd2[j++] = buffer[i++];
+    }
+    if(j == MAX_SIZE_CMD){
+        unknown_command(cmd2);
+        return;
+    }
+    cmd2[j] = '\0';
+    fun1 = command_line(cmd1);
+    fun2 = command_line(cmd2);
+    if(fun1 == NULL || fun2 == NULL){
+        return;
+    }
+    int fds1[2];
+    if(pipe(fds1) != 0){
+        puts("Error in pipe creation\n");
+        return;
+    }
+    fprintf(STDOUT,"Before: read-end:%d, write-end:%d\n",fds1[0],fds1[1]);
+    char * name1 = "write_handler";
+    char fd[2];
+    itoa(fds1[1],fd);
+    char * argv[] = {name1, fd};
+    //pipefd[0] refers to the read end  of  the  pipe. pipefd[1] refers to the write end of the pipe
+    puts(fd);puts(argv[1]);
+    pid_t pid1 = exec((uint64_t) write_handler, 2 ,argv);
+    
+    char * name2 = "read_handler";
+    itoa(fds1[0],fd);
+    char * argv2[] = {name2,fd};
+    pid_t pid2 = exec((uint64_t) read_handler, 2 ,argv2);
+    waitpid(pid1);
+    waitpid(pid2);
+
+    fun1 = NULL;
+    fun2 = NULL;
+}
+
+void write_handler(int argc,char* argv[]){
+    if(argc <= 1){
+        return;
+    }
+    fprintf(STDOUT,"After: write end: %d\n",atoi(argv[1]));
+    dup2(atoi(argv[1]),STDOUT);
+    char *name = "fun1";
+    char *args[] = {name};
+    pid_t pid = exec((uint64_t) fun1,1,args);
+}
+
+void read_handler(int argc,char* argv[]){
+    if(argc <= 1){
+        return;
+    }
+    fprintf(STDOUT,"After: read end: %d\n",atoi(argv[1]));
+    dup2(atoi(argv[1]),STDIN);
+    char *name = "fun2";
+    char *args[] = {name};
+    pid_t pid = exec((uint64_t) fun2,1,args);
+}
