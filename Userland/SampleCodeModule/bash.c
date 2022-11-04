@@ -10,7 +10,7 @@ void unknownCommand();
 void pipeManager();
 pm commandLine(char* buffer);
 
-extern void halt();
+// extern void halt();
 
 void bash() {
     int i=0;
@@ -61,7 +61,7 @@ void test_nice2() {
 		if (i == 50) {
 			sem_post(sem);
 		}
-        halt();
+        // halt();
     }
 }
 
@@ -73,7 +73,7 @@ void test_nice() {
 	sem_wait(sem);
     while (1) {
         putChar('C');
-        halt();
+        // halt();
     }
 }
 
@@ -135,7 +135,7 @@ void test_pipe_info() {
     int fds2[2];
     pipe(fds1);
     pipe(fds2);
-    sys_write(fds1[1], "HOLA HOLA HOLA", 14);
+    write(fds1[1], "HOLA HOLA HOLA", 14);
     close(fds2[0]);
 
     PipeInfo * info = pipe_info();
@@ -177,13 +177,13 @@ void test_process_info() {
 
 void test_mem_info() {
     MemInfo * info = mem_info();
-    fprintf(STDOUT, "Total: %d, Occupied: %d, Free: %d, Fragments: %d\n", info->memory_total, info->memory_occupied, info->memory_free, info->memory_frags);
+    fprintf(STDOUT, "Type: %s, Total: %d, Occupied: %d, Free: %d, Fragments: %d\n", info->mem_algorithm, info->memory_total, info->memory_occupied, info->memory_free, info->memory_frags);
 }
 
 void test_block2() {
     while(1) {
         putChar('B');
-        halt();
+        // halt();
     }
 }
 
@@ -201,7 +201,7 @@ void test_block() {
         } else if (i == 40) {
             kill(pid);
         }
-        halt();
+        // halt();
         i++;
     }
 }
@@ -211,7 +211,7 @@ void medium () {
     char * name = "Primes BCK";
     char * argv[] = {name};
     pid_t prime_pid = exec(printPrime, 1, argv);
-    sys_exit(0);
+    exit(0);
 }
 
 void prueba1() {
@@ -233,13 +233,13 @@ pm commandLine(char* buffer){
         return (pm)inforeg;
     }else if(strcmp(buffer,"dividebyzero") == 0){
         putChar('\n');
-        return (pm)excepDivZero;
+        return (pm)NULL;
     }else if(strcmp(buffer,"help") == 0){
         putChar('\n');
         return (pm)help;
     }else if(strcmp(buffer,"invalidopcode") == 0){
         putChar('\n');
-        return (pm)excepInvalidOpcode;
+        return (pm)NULL;
     }else if(containsString(buffer,"printmem") >= 0){
         putChar('\n');
         savePrintMemParams(buffer);
@@ -271,7 +271,9 @@ pm commandLine(char* buffer){
     } else if (strcmp(buffer, "test mm") == 0) {
         putChar('\n');
         char * name = "Memory Test";
-        char * max_memory = "17000000";
+        // char * max_memory = "17000000";
+        char * max_memory = "4999999";
+        // char * max_memory = "20000000";
         char * argv[] = {name, max_memory};
         pid_t pid = exec((uint64_t) test_mm, 2, argv);
         waitpid(pid);

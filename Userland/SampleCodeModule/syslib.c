@@ -12,16 +12,16 @@ unsigned int strlen(const char *str){
 
 int puts(const char * str){
     int len = strlen(str);
-    return sys_write(STDOUT, str, len);
+    write(STDOUT, str, len);
 }
 
 int putChar(char c){
-    return sys_write(STDOUT, &c, 1);
+    write(STDOUT, &c, 1);
 }
 
 int gets(char * s){
     int i = 0, c = getChar();
-    while (c != '\n' && c != EOF)
+    while (c != '\n' && c != -1)
     {
         s[i] = c;
         if(s[i] == '\b' && i > 0){
@@ -40,28 +40,28 @@ int gets(char * s){
 }
 
 void getTime(){
-    time_t time;
+    time_t t;
     char buffer[64] = {'0'};
-    sys_time(&time);
+    time(&t);
 
     putChar('\n');
-    uintToBase(time.hours, buffer, 10);
+    uintToBase(t.hours, buffer, 10);
     puts(buffer);
     putChar(':');
-    uintToBase(time.minutes, buffer, 10);
+    uintToBase(t.minutes, buffer, 10);
     puts(buffer);
     putChar(':');
-    uintToBase(time.seconds, buffer, 10);
+    uintToBase(t.seconds, buffer, 10);
     puts(buffer);
     putChar('\n');
 
-    uintToBase(time.day, buffer, 10);
+    uintToBase(t.day, buffer, 10);
     puts(buffer);
     putChar('/');
-    uintToBase(time.month, buffer, 10);
+    uintToBase(t.month, buffer, 10);
     puts(buffer);
     putChar('/');
-    uintToBase(time.year+2000, buffer, 10);
+    uintToBase(t.year+2000, buffer, 10);
     puts(buffer);
     putChar('\n');
     
@@ -73,7 +73,7 @@ char getChar(){
     // {
     //     ;
     // }
-    sys_read(STDIN, &c, 1);
+    read(STDIN, &c, 1);
     return c;
 }
 
@@ -88,13 +88,13 @@ unsigned int charBelongs(char *s,char c){
     return 0;
 }
 
-void excepDivZero(){
-    div_zero();
-}
+// void excepDivZero(){
+//     div_zero();
+// }
 
-void excepInvalidOpcode(){
-    inv_opcode();
-}
+// void excepInvalidOpcode(){
+//     inv_opcode();
+// }
 
 //https://code.woboq.org/userspace/glibc/string/strcmp.c.html
 int strcmp (const char *p1, const char *p2){
@@ -169,7 +169,7 @@ void printPrime(){
             puts(",\n");
         }
         i++;
-        halt();
+        // halt();
     }
 }
 
@@ -270,42 +270,11 @@ int checkPrintMemParams(char *s,uint64_t* address){
 }
 
 void printmem(){
-    uint8_t copy[32];
-    uint64_t address;
-
-    if (!checkPrintMemParams(address_str, &address))
-        return;
-
-    sys_copymem(address, copy, 32);
-
-    for(int i=0; i<32 ; i++){
-        if(i%8==0)
-		    putChar('\n');
-		putChar(valueToHexChar(copy[i]>>4));
-		putChar(valueToHexChar(copy[i]&0x0F));
-		putChar(' ');
-		putChar(' ');
-    }
-    putChar(' ');
+    puts("Deprecated");
 }
 
 void inforeg(){
-    static char* registers[18] = { "R15", "R14", "R13", "R12", "R11", "R10", "R9 ", "R8 ", "RSI", "RDI", "RBP", "RDX", "RCX", "RBX", "RAX", "RIP", "RFL", "RSP" };
-
-    uint64_t regval[18];
-    int sysret = sys_getregs(regval);
-    if (sysret == 0){
-        puts("No registers to print.\n");
-        return;
-    } 
-    char buffer[64] = {'0'};
-    for(int i=0;i<18;i++){
-        puts(registers[i]);
-        puts(": 0x");
-        uintToBase(regval[i], buffer, 16);
-        puts(buffer);
-        putChar('\n');
-    }
+    puts("Deprecated");
 }
 
 //Tomado de x86-Barebones
@@ -411,5 +380,5 @@ void fprintf(int fd, char * str, ...) {
         i++;
     }
     va_end(vl);
-    sys_write(fd, buff, j);
+    write(fd, buff, j);
  }

@@ -1,9 +1,5 @@
-/***************************************************
-  Defs.h
-****************************************************/
-
-#ifndef _defs_
-#define _defs_
+#ifndef DEFS_H
+#define DEFS_H
 
 #include <stddef.h>
 
@@ -14,7 +10,7 @@
 #define ACS_READ        0x02            /* segmento de lectura */
 #define ACS_WRITE       0x02            /* segmento de escritura */
 #define ACS_IDT         ACS_DSEG
-#define ACS_INT_386 	0x0E		/* Interrupt GATE 32 bits */
+#define ACS_INT_386 	  0x0E		        /* Interrupt GATE 32 bits */
 #define ACS_INT         ( ACS_PRESENT | ACS_INT_386 )
 
 
@@ -27,15 +23,5 @@
 #define RIP_POS REG_AMOUNT
 #define RFLAGS_POS (REG_AMOUNT+2)
 #define RSP_POS (REG_AMOUNT+3)
-
-/* Status */
-#define READY 0
-#define BLOCKED 1
-#define TERMINATED 2
-
-/* Data Types */
-typedef int pid_t;
-typedef unsigned int priority_t;
-typedef unsigned int status_t;
 
 #endif

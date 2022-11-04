@@ -1,5 +1,8 @@
 #include <lib.h>
+#include <stddef.h>
+#include <memory_manager.h>
 
+// Retreived from init
 void * memset(void * destination, int32_t c, uint64_t length) {
 	uint8_t chr = (uint8_t)c;
 	char * dst = (char*)destination;
@@ -7,9 +10,10 @@ void * memset(void * destination, int32_t c, uint64_t length) {
 	while(length--)
 		dst[length] = chr;
 
-	return destination;
+	return destination; 
 }
 
+// Retreived from init
 void * memcpy(void * destination, const void * source, uint64_t length) {
 	/*
 	* memcpy does not support overlapping buffers, so always do it
@@ -47,7 +51,7 @@ void * memcpy(void * destination, const void * source, uint64_t length) {
 	return destination;
 }
 
-//https://code.woboq.org/userspace/glibc/string/strcmp.c.html
+// Retreived from https://code.woboq.org/userspace/glibc/string/strcmp.c.html
 int strcmp (const char *p1, const char *p2){
 	const unsigned char *s1 = (const unsigned char *) p1;
 	const unsigned char *s2 = (const unsigned char *) p2;
@@ -69,7 +73,7 @@ unsigned int strlen(const char *str) {
     return len;
 }
 
-char * strcpy(char * str) {
+char * strcpy(const char * str) {
 	unsigned int len = strlen(str);
 	char * new_str = memory_manager_alloc(len+1);
 	if (new_str != NULL) {

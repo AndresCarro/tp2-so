@@ -2,23 +2,27 @@
 #define SCHEDULER_H
 
 #include <stdint.h>
-#include <naiveConsole.h>
-#include <interrupts.h>
-#include <timerDriver.h>
-#include <defs.h>
+#include <kernel_types.h>
 
-void _defaultExit();
+typedef struct node{
+    PCB process;
+    struct node * next;
+} Node;
 
-void loadTasks(int (*program1)(), int (*program2)(), uint64_t * registers);
+typedef Node * Queue;
 
-void nextTask(uint64_t * registers);
+int prepare_process_for_work(pid_t pid);
 
-void changeStatus(unsigned int taskNum);
+void scheduler_init(Pipe * stdin);
+pid_t create_process(uint64_t rip, int argc, char * argv[]);
+int terminate_process(int return_value, char autokill);
+int block_process(pid_t process_pid);
+int unblock_process(pid_t process_pid);
+PCB * get_process(pid_t pid);
+pid_t get_current_pid();
+int change_priority(pid_t pid, int priority_value);
+int yield_process();
 
-void exitTask(int retValue, uint64_t * registers);
+PCBInfo * process_info();
 
-void terminateTasks();
-
-int getCurrentTask();
-
-#endif //SCHEDULER_H
+#endif
