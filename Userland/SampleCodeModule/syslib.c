@@ -10,6 +10,10 @@ unsigned int strlen(const char *str){
     return len;
 }
 
+int is_num(char c){
+    return c >= '0' && c <= '9';
+}
+
 int puts(const char * str){
     int len = strlen(str);
     return sys_write(STDOUT, str, len);

@@ -15,6 +15,7 @@ void loop();
 
 void write_handler(int argc,char* argv[]);
 void read_handler(int argc,char* argv[]);
+void background_handler(int argc,char* argv[]);
 
 void print_prime();
 void help();

@@ -2,6 +2,7 @@
 #include <processes.h>
 
 #define MAX_SIZE_CMD 32
+#define MAX_DIGIT_PID 3
 
 static char buffer[32];
 static pm fun1 = NULL;
@@ -10,7 +11,7 @@ static pm fun2 = NULL;
 int read_input();
 void unknown_command();
 void pipe_panager();
-// void background_manager();
+void background_manager();
 pm command_line(char* buffer);
 
 extern void halt();
@@ -40,7 +41,7 @@ int read_input(){
         pipe_manager();
     } else if(char_belongs(buffer,'&')) {
         put_char('\n');
-        // background_manager();
+        background_manager();
     } else {
         put_char('\n');
         pm fun = command_line(buffer);
@@ -279,8 +280,11 @@ pm command_line(char* buffer){
     } else if (strcmp(buffer, "loop") == 0) {
         return (pm) loop;
     } else if (contains_string(buffer, "kill") == 0) {
-
-        return (pm) loop;
+        kill_handler();
+        return NULL;
+    } else if (contains_string(buffer, "nice") == 0) {
+        // nice_handler();
+        return NULL;
     } else if (strcmp(buffer, "sem") == 0) {
         return (pm) print_sem_info;
     } else if (strcmp(buffer, "pipe") == 0) {
@@ -370,19 +374,83 @@ void read_handler(int argc,char* argv[]){
     waitpid(pid);
 }
 
-// void background_manager(){
-//     char cmd[MAX_SIZE_CMD];
-//     unsigned int i=0;
-//     while(buffer[i] != '&' && i < MAX_SIZE_CMD){
-//         cmd1[i] = buffer[i];
-//         i++;
-//     }
-//     if(i == MAX_SIZE_CMD){
-//         unknown_command();
-//     }
-//     pm fun = command_line(cmd);
-//     if(fun == NULL){
-//         return;
-//     }
+void background_manager(){
+    char cmd[MAX_SIZE_CMD];
+    unsigned int i=0;
+    while(buffer[i] != '&' && i < MAX_SIZE_CMD){
+        cmd[i] = buffer[i];
+        i++;
+    }
+    if(i == MAX_SIZE_CMD){
+        unknown_command();
+    }
+    fun1 = command_line(cmd);
+    if(fun1 == NULL){
+        return;
+    }
+    char * name = "background_handler";
+    char * argv[] = {name};
+    pid_t pid = exec((uint64_t) background_handler, 1 ,argv);
+    waitpid(pid);
+    fun1 = NULL;
+}
 
-// }
+void background_handler(int argc,char* argv[]){
+    close(STDOUT);
+    char *name = "background_fun";
+    char *argv2[] = {name};
+    pid_t pid = exec((uint64_t) fun1,1,argv2);
+}
+
+void kill_handler(){
+    char pid[MAX_DIGIT_PID+1];
+    char check_cmd[4];
+    int i=0;
+    while( buffer[i] != '\0' && i < MAX_SIZE_CMD && !is_num(buffer[i])){
+        check_cmd[i] = buffer[i];
+        i++;
+    }
+    if( i == MAX_SIZE_CMD || strcmp(check_cmd,"kill") != 0 ){
+        unknown_command();
+        return;
+    }
+    int j=0;
+    while ( buffer[i] != '\0' ){
+        if( is_num(buffer[i]) ){
+            pid[j++] = buffer[i++];
+        }else{
+            unknown_command();
+            return;
+        }
+    }
+    pid[j] = '\0'; 
+    if( j > MAX_DIGIT_PID ){
+        puts("Invalid process id\n");
+        return;
+    }
+    if(kill(atoi(pid)) == -1){
+        puts("Error in the killing process\n");
+    }
+}
+
+void nice_handler(){
+    int nice_value;
+    char check_cmd[4];
+    int i=0;
+    while( buffer[i] != '\0' && i < MAX_SIZE_CMD && !is_num(buffer[i])){
+        check_cmd[i] = buffer[i];
+        i++;
+    }
+    if( i == MAX_SIZE_CMD || strcmp(check_cmd,"nice") != 0 ){
+        return;
+    }
+    int i;
+
+    
+    if(is_num(buffer[i])){
+        i = buffer[i] - '0';
+        if(nice() == -1){
+
+        }
+    }
+}

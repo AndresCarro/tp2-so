@@ -48,12 +48,13 @@ void dup2(int oldfd, int newfd);
 void close(int fd);
 
 unsigned int strlen(const char *s);
+int is_num(char c);
 int puts(const char* s);
 int put_char(char);
 char get_char();
 int gets(char * s);
 unsigned int char_belongs(char *s,char c);
-int containsString(const char *p1,const char *p2);
+int contains_string(const char *p1,const char *p2);
 int strcmp (const char *p1, const char *p2);
 uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base);
 int atoi(char * str);
