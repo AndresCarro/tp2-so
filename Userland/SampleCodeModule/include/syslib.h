@@ -21,14 +21,15 @@
 #define STDOUT 1
 #define STDERR 2
 
+#define MAX_BUFFER 256
 
-typedef void (*ptr)();
-typedef ptr (*pm)();
-
+typedef void (* command)(int, char **);
 
 #define EOF -1
 
 typedef uint64_t sem_t;
+
+char ** strtok(char * str, char delim, int * qty);
 
 int sys_write(int fd, const char *buffer, int size);
 int sys_read(int fd,char * buffer,int size);

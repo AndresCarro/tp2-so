@@ -1,64 +1,108 @@
 #include <bash.h>
 #include <processes.h>
 
-#define MAX_SIZE_CMD 32
 #define MAX_DIGIT_PID 3
+#define COMMAND_COUNT 5
 
-static char buffer[32];
-static pm fun1 = NULL;
-static pm fun2 = NULL;
+#define BLOCK_BUILTIN 1
+#define UNBLOCK_BUILTIN 2
+#define NICE_BUILTIN 3
+#define KILL_BUILTIN 4
+
+static char buffer[MAX_BUFFER];
+
+static command fun1 = NULL;
+static command fun2 = NULL;
 
 int read_input();
-void unknown_command();
-void pipe_panager();
-void background_manager();
-pm command_line(char* buffer);
+
+command command_parser(char * name);
+void unknown_command(char * name);
+
+void block_handler(char * pid);
+void unblock_handler(char * pid);
+void kill_handler(char * pid);
+void nice_handler(char * pid, char * new_priority);
+
+void background_manager(char * name);
+void background_handler(int argc, char * argv[]);
+
+command bck_fun = NULL;
+int bck_argc = -1;
+char ** bck_argv = NULL;
 
 extern void halt();
+void pipe_panager();
 
 void bash() {
     int i=0;
-    while(i != -1){
+    while (i != -1){
         puts("Agodn't.IO:$ ");
         i = read_input();
-        // put_char('\n');
     }
 }
-
-/*
-PROCESO PADRE -> EXEC A PROCESO INTERMEDIO
-PROCESO INTERMEDIO -> DUP -> EXEC A PROCESO HIJO -> EXIT()
-PROCESO HIJO -> CORRE
-*/
 
 int read_input(){
     int size_read = gets(buffer);
-    if(strcmp(buffer,"exit") == 0) {
-        puts("\nGoodbye :D\n");
+
+    if (char_belongs(buffer, '|') && char_belongs(buffer, '&')) {
+        fprintf(STDOUT, "\nERROR: Piping and background processes are incompatible.\n");
+        return 0;
+    }
+
+    if (strcmp(buffer, "exit") == 0) {
+        fprintf(STDOUT, "\nGoodbye :D\n");
         return -1;
-    } else if(char_belongs(buffer,'|')) {
-        put_char('\n');
+    }
+    
+    int part_count;
+    char ** parts = strtok(buffer, ' ', &part_count);
+
+    put_char('\n');
+    if (char_belongs(buffer, '|')) {
         pipe_manager();
-    } else if(char_belongs(buffer,'&')) {
-        put_char('\n');
-        background_manager();
+    } else if (parts[0][0] == '&') {
+        bck_argc = part_count;
+        bck_argv = parts;
+        background_manager(parts[0]);
     } else {
-        put_char('\n');
-        pm fun = command_line(buffer);
-        if(fun != NULL){
-            char * name = "Funcion";
-            char * argv[] = {name}; // TODO HAY QUE ARREGLAR ESTO
-            pid_t pid = exec((uint64_t) fun, 1, argv);
+        command fun = command_parser(parts[0]);
+        if (fun == NULL) {
+            unknown_command(parts[0]);
+        } else if (fun == BLOCK_BUILTIN) {
+            if (part_count != 2) {
+                fprintf(STDOUT, "ERROR: Must provide only one argument.");
+            } else {
+                kill_handler(parts[1]);
+            }
+        } else if (fun == UNBLOCK_BUILTIN) {
+            if (part_count != 2) {
+                fprintf(STDOUT, "ERROR: Must provide only one argument.");
+            } else {
+                kill_handler(parts[1]);
+            }
+        } else if (fun == NICE_BUILTIN) {
+            if (part_count != 3) {
+                fprintf(STDOUT, "ERROR: Must provide only two arguments.");
+            } else {
+                nice_handler(parts[1], parts[2]);
+            }
+        } else if (fun == KILL_BUILTIN) {
+            if (part_count != 2) {
+                fprintf(STDOUT, "ERROR: Must provide only one argument.");
+            } else {
+                kill_handler(parts[1]);
+            }
+        } else {
+            pid_t pid = exec((uint64_t) fun, part_count, parts);
             waitpid(pid);
         }
     }
-    //etc, para los distintos comandos a implementar
     return size_read;
 }
 
-void unknown_command(){
-    puts("\nUnknown command: ");
-    puts(buffer);
+void unknown_command(char * name) {
+    fprintf(STDOUT, "ERROR: Unknown command < %s >.", name);
     put_char('\n');
 }
 
@@ -206,91 +250,49 @@ void medium () {
     sys_exit(0);
 }
 
-pm command_line(char* buffer){
-    // put_char('\n');
-    if(strcmp(buffer,"time") == 0){
-        return (pm)get_time;
-    } else if (strcmp(buffer,"prime") == 0){
-        return (pm)print_prime;
-    } else if (strcmp(buffer,"fibonacci") == 0){
-        return (pm)fibonacci_numbs;
-    } else if (strcmp(buffer,"dividebyzero") == 0){
-        return (pm)excep_div_zero;
-    } else if (strcmp(buffer,"help") == 0){
-        return (pm)help;
-    } else if (strcmp(buffer,"invalidopcode") == 0){
-        return (pm)excep_invalid_opcode;
-    } else if (strcmp(buffer, "test_nice") == 0) {
-        return (pm) test_nice;
-    } else if (strcmp(buffer, "test_pipes") == 0) {
-        return (pm) test_pipe;
-    } else if (strcmp(buffer, "test_close") == 0) {
-        return (pm) test_close;
-    } else if (strcmp(buffer, "test_pipe_info") == 0) {
-        return (pm) test_pipe_info;
-    } else if (strcmp(buffer, "test_sem_info") == 0) {
-        return (pm) test_sem_info;
-    } else if (strcmp(buffer, "ps") == 0) {
-        return (pm) print_process_info;
-    } else if (strcmp(buffer, "mem") == 0) {
-        return (pm) print_mem_info;
-    } else if (strcmp(buffer, "test mm") == 0) {
-        char * name = "Memory Test";
-        char * max_memory = "17000000";
-        char * argv[] = {name, max_memory};
-        pid_t pid = exec((uint64_t) test_mm, 2, argv);
-        waitpid(pid);
-    } else if (strcmp(buffer, "test processes") == 0) {
-        char * name = "Processes Test";
-        char * max_proc = "5";
-        char * argv[] = {name, max_proc};
-        pid_t pid = exec((uint64_t) test_processes, 2, argv);
-        waitpid(pid);
-    } else if (strcmp(buffer, "test_p") == 0) {
-        char * name = "Our Processes Test";
-        char * argv[] = {name};
-        pid_t pid = exec((uint64_t) test_block, 1, argv);
-        waitpid(pid);
-    } else if (strcmp(buffer, "test_prio") == 0) {
-        char * name = "Priorities aGODio Test";
-        char * argv[] = {name};
-        pid_t pid = exec((uint64_t) test_prio, 1, argv);
-        waitpid(pid);
-    } else if (strcmp(buffer, "test_sync_with_sem") == 0) {
-        char * name = "Sync aGODio Test with sem";
-        char * argv[] = {name, "10", "1"};
-        pid_t pid = exec((uint64_t) test_sync, 3, argv);
-        waitpid(pid);
-    } else if (strcmp(buffer, "test_sync_without_sem") == 0) {
-        char * name = "Sync aGODio Test without sem";
-        char * argv[] = {name, "60", "0"};
-        pid_t pid = exec((uint64_t) test_sync, 3, argv);
-        exec((uint64_t) medium, 3, argv);
-        waitpid(pid);
-    } else if (strcmp(buffer, "pb") == 0) {
-        char * name = "Primes SCREEN";
-        char * name2 = "Primes BCK";
-        char * argv[] = {name};
-        char * argv2[] = {name2};
-        pid_t pid = exec((uint64_t) print_prime, 1, argv);
-        exec((uint64_t) medium, 1, argv2);
-        waitpid(pid);
-    } else if (strcmp(buffer, "wc") == 0) {
-        return (pm) wc;
-    } else if (strcmp(buffer, "loop") == 0) {
-        return (pm) loop;
-    } else if (contains_string(buffer, "kill") == 0) {
-        kill_handler();
-        return NULL;
-    } else if (contains_string(buffer, "nice") == 0) {
-        // nice_handler();
-        return NULL;
-    } else if (strcmp(buffer, "sem") == 0) {
-        return (pm) print_sem_info;
-    } else if (strcmp(buffer, "pipe") == 0) {
-        return (pm) print_pipe_info;
-    } else {
-        unknown_command(buffer);
+command command_parser(char * name){
+    if (strcmp(name, "help") == 0) {
+        return (command) help;
+    } else if (strcmp(name, "mem") == 0) {
+        return (command) mem;
+    } else if (strcmp(name, "ps") == 0) {
+        return (command) ps;
+    } else if (strcmp(name, "loop") == 0) {
+        return (command) loop;
+    } else if (strcmp(name, "sem") == 0) {
+        return (command) sem;
+    } else if (strcmp(name, "pipe") == 0) {
+        return (command) pipe;
+    } else if (strcmp(name, "time") == 0) {
+        return (command) time;
+    } else if (strcmp(name, "primes") == 0) {
+        return (command) primes;
+    } else if (strcmp(name, "fibonacci") == 0) {
+        return (command) fibonacci;
+    } else if (strcmp(name, "test_mm") == 0) {
+        return (command) test_mm;
+    } else if (strcmp(name, "test_processes") == 0) {
+        return (command) test_processes;
+    } else if (strcmp(name, "test_priority") == 0) {
+        return (command) test_priority;
+    } else if (strcmp(name, "test_synchro") == 0) {
+        return (command) test_synchro;
+    } else if (strcmp(name, "wc") == 0) {
+        return (command) wc;
+    } else if (strcmp(name, "cat") == 0) {
+        return (command) cat;
+    } else if (strcmp(name, "filter") == 0) {
+        return (command) filter;
+    }  else if (strcmp(name, "phylo") == 0) {
+        return (command) phylo;
+    } else if (strcmp(name, "block") == 0) {
+        return BLOCK_BUILTIN;
+    } else if (strcmp(name, "unblock") == 0) {
+        return UNBLOCK_BUILTIN;
+    } else if (strcmp(name, "nice") == 0) {
+        return NICE_BUILTIN;
+    } else if (contains_string(name, "kill") == 0) {
+        return KILL_BUILTIN;
     }
     return NULL;
 }
@@ -298,8 +300,8 @@ pm command_line(char* buffer){
 void pipe_manager(){
     char cmd1[MAX_SIZE_CMD],cmd2[MAX_SIZE_CMD];
     unsigned int i=0;
-    while(buffer[i] != '|' && i < MAX_SIZE_CMD){
-        cmd1[i] = buffer[i];
+    while(name[i] != '|' && i < MAX_SIZE_CMD){
+        cmd1[i] = name[i];
         i++;
     }
     if(i == MAX_SIZE_CMD){
@@ -309,8 +311,8 @@ void pipe_manager(){
     cmd1[i] = '\0';
     i++;//como estoy parado en la '|' paso al siguiente
     unsigned int j=0;
-    while(buffer[i] != '\0' && j < MAX_SIZE_CMD){
-        cmd2[j++] = buffer[i++];
+    while(name[i] != '\0' && j < MAX_SIZE_CMD){
+        cmd2[j++] = name[i++];
     }
     if(j == MAX_SIZE_CMD){
         unknown_command(cmd2);
@@ -374,83 +376,98 @@ void read_handler(int argc,char* argv[]){
     waitpid(pid);
 }
 
-void background_manager(){
-    char cmd[MAX_SIZE_CMD];
-    unsigned int i=0;
-    while(buffer[i] != '&' && i < MAX_SIZE_CMD){
-        cmd[i] = buffer[i];
-        i++;
-    }
-    if(i == MAX_SIZE_CMD){
-        unknown_command();
-    }
-    fun1 = command_line(cmd);
-    if(fun1 == NULL){
+void background_manager(char * name) {
+    command fun = command_parser(name + 1);
+    if (fun == NULL || fun == BLOCK_BUILTIN || fun == UNBLOCK_BUILTIN || fun == NICE_BUILTIN || fun == KILL_BUILTIN) {
+        fprintf(STDOUT, "ERROR. Command not found or not supported for backround.");
         return;
     }
-    char * name = "background_handler";
-    char * argv[] = {name};
-    pid_t pid = exec((uint64_t) background_handler, 1 ,argv);
+    bck_fun = fun;
+
+    char * name = "Background Handler";
+    char * argv_aux[] = {name};
+    pid_t pid = exec((uint64_t) background_handler, 1 , argv_aux);
     waitpid(pid);
-    fun1 = NULL;
+    bck_fun = NULL;
+    bck_argc = -1;
+    bck_argv = NULL;
 }
 
-void background_handler(int argc,char* argv[]){
+void background_handler(int argc, char * argv[]) {
     close(STDOUT);
-    char *name = "background_fun";
-    char *argv2[] = {name};
-    pid_t pid = exec((uint64_t) fun1,1,argv2);
+    pid_t pid = exec((uint64_t) bck_fun, bck_argc, bck_argv);
 }
 
-void kill_handler(){
-    char pid[MAX_DIGIT_PID+1];
-    char check_cmd[4];
-    int i=0;
-    while( buffer[i] != '\0' && i < MAX_SIZE_CMD && !is_num(buffer[i])){
-        check_cmd[i] = buffer[i];
-        i++;
-    }
-    if( i == MAX_SIZE_CMD || strcmp(check_cmd,"kill") != 0 ){
-        unknown_command();
-        return;
-    }
-    int j=0;
-    while ( buffer[i] != '\0' ){
-        if( is_num(buffer[i]) ){
-            pid[j++] = buffer[i++];
-        }else{
-            unknown_command();
+void block_handler(char * pid) {
+    int i;
+    for (i = 0; pid[i] != '\0'; i++) {
+        if (!is_num(pid[i])) {
+            fprintf(STDOUT, "ERROR: Must specify a PID to block.");
             return;
         }
     }
-    pid[j] = '\0'; 
-    if( j > MAX_DIGIT_PID ){
-        puts("Invalid process id\n");
+    if (i > MAX_DIGIT_PID) {
+        fprintf(STDOUT, "ERROR: PID provided is too big.");
         return;
     }
-    if(kill(atoi(pid)) == -1){
-        puts("Error in the killing process\n");
+    if (block(atoi(pid)) == -1) {
+        fprintf(STDOUT, "ERROR: Block failed.");
     }
 }
 
-void nice_handler(){
-    int nice_value;
-    char check_cmd[4];
-    int i=0;
-    while( buffer[i] != '\0' && i < MAX_SIZE_CMD && !is_num(buffer[i])){
-        check_cmd[i] = buffer[i];
-        i++;
+void unblock_handler(char * pid) {
+    int i;
+    for (i = 0; pid[i] != '\0'; i++) {
+        if (!is_num(pid[i])) {
+            fprintf(STDOUT, "ERROR: Must specify a PID to unblock.");
+            return;
+        }
     }
-    if( i == MAX_SIZE_CMD || strcmp(check_cmd,"nice") != 0 ){
+    if (i > MAX_DIGIT_PID) {
+        fprintf(STDOUT, "ERROR: PID provided is too big.");
         return;
     }
+    if (unblock(atoi(pid)) == -1) {
+        fprintf(STDOUT, "ERROR: Unblock failed.");
+    }
+}
+
+void kill_handler(char * pid) {
     int i;
-
-    
-    if(is_num(buffer[i])){
-        i = buffer[i] - '0';
-        if(nice() == -1){
-
+    for (i = 0; pid[i] != '\0'; i++) {
+        if (!is_num(pid[i])) {
+            fprintf(STDOUT, "ERROR: Must specify a PID to kill.");
+            return;
         }
+    }
+    if (i > MAX_DIGIT_PID) {
+        fprintf(STDOUT, "ERROR: PID provided is too big.");
+        return;
+    }
+    if (kill(atoi(pid)) == -1) {
+        fprintf(STDOUT, "ERROR: Kill failed.");
+    }
+}
+
+void nice_handler(char * pid, char * new_priority) {
+    int i;
+    for (i = 0; pid[i] != '\0'; i++) {
+        if (!is_num(pid[i])) {
+            fprintf(STDOUT, "ERROR: Must specify a PID to change its priority.");
+            return;
+        }
+    }
+    if (i > MAX_DIGIT_PID) {
+        fprintf(STDOUT, "ERROR: PID provided is too big.");
+        return;
+    }
+    for (i = 0; new_priority[i] != '\0'; i++) {
+        if (!is_num(pid[i])) {
+            fprintf(STDOUT, "ERROR: Must specify a value for the new priority.");
+            return;
+        }
+    }
+    if (nice(atoi(pid), atoi(new_priority)) == -1) {
+        fprintf(STDOUT, "ERROR: Nice failed.");
     }
 }
