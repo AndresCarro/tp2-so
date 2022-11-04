@@ -42,9 +42,9 @@ int gets(char * s){
 char get_char(){
     char c;
     sys_read(STDIN, &c, 1);
-    if(c == 0){
-        return EOF;
-    }
+    // if(c == 0){
+    //     return EOF;
+    // }
     return c;
 }
 

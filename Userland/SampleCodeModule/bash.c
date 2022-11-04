@@ -10,6 +10,7 @@ static pm fun2 = NULL;
 int read_input();
 void unknown_command();
 void pipe_panager();
+// void background_manager();
 pm command_line(char* buffer);
 
 extern void halt();
@@ -19,7 +20,7 @@ void bash() {
     while(i != -1){
         puts("Agodn't.IO:$ ");
         i = read_input();
-        put_char('\n');
+        // put_char('\n');
     }
 }
 
@@ -31,13 +32,17 @@ PROCESO HIJO -> CORRE
 
 int read_input(){
     int size_read = gets(buffer);
-    if(strcmp(buffer,"exit") == 0){
+    if(strcmp(buffer,"exit") == 0) {
         puts("\nGoodbye :D\n");
         return -1;
-    }else if(char_belongs(buffer,'|')){
+    } else if(char_belongs(buffer,'|')) {
         put_char('\n');
         pipe_manager();
-    }else{
+    } else if(char_belongs(buffer,'&')) {
+        put_char('\n');
+        // background_manager();
+    } else {
+        put_char('\n');
         pm fun = command_line(buffer);
         if(fun != NULL){
             char * name = "Funcion";
@@ -89,11 +94,13 @@ void test_pipe_2() {
 }
 
 void dup_handler(int argc, char * argv[]) {
-    int k = atoi(argv[0]);
+    int k = atoi(argv[1]);
+    close(atoi(argv[2]));
     dup2(k, STDIN);
     char * name = "Test Pipe 2";
     char * argvs[] = {name};
     exec(test_pipe_2, 1, argvs);
+    close(STDIN);
 }
 
 void test_pipe() {
@@ -101,12 +108,14 @@ void test_pipe() {
     pipe(fds);
 
     char str[2];
+    char str2[2];
     itoa(fds[0],str);
+    itoa(fds[1],str2);
     char * name = "Dup Handler";
-    char * argv[] = {name, str};
+    char * argv[] = {name, str, str2};
 
-    exec((uint64_t) dup_handler, 2, argv);
-    
+    exec((uint64_t) dup_handler, 3, argv);
+    close(fds[0]);
     dup2(fds[1], STDOUT);
     while (1) {
         put_char('B');
@@ -197,7 +206,7 @@ void medium () {
 }
 
 pm command_line(char* buffer){
-    put_char('\n');
+    // put_char('\n');
     if(strcmp(buffer,"time") == 0){
         return (pm)get_time;
     } else if (strcmp(buffer,"prime") == 0){
@@ -314,22 +323,23 @@ void pipe_manager(){
         puts("Error in pipe creation\n");
         return;
     }
-    fprintf(STDOUT,"Before: read-end:%d, write-end:%d\n",fds1[0],fds1[1]);
     char * name1 = "write_handler";
-    char fd[2];
-    itoa(fds1[1],fd);
-    char * argv[] = {name1, fd};
+    char fd_w[2];
+    char fd_r[2];
+    itoa(fds1[1],fd_w);
+    itoa(fds1[0],fd_r);
+    char * argv[] = {name1, fd_r,fd_w};
     //pipefd[0] refers to the read end  of  the  pipe. pipefd[1] refers to the write end of the pipe
-    puts(fd);puts(argv[1]);
-    pid_t pid1 = exec((uint64_t) write_handler, 2 ,argv);
+    pid_t pid1 = exec((uint64_t) write_handler, 3 ,argv);
     
     char * name2 = "read_handler";
-    itoa(fds1[0],fd);
-    char * argv2[] = {name2,fd};
-    pid_t pid2 = exec((uint64_t) read_handler, 2 ,argv2);
+    char * argv2[] = {name2, fd_r,fd_w};
+    pid_t pid2 = exec((uint64_t) read_handler, 3 ,argv2);
+    close(fds1[0]);
+    close(fds1[1]);
     waitpid(pid1);
     waitpid(pid2);
-
+    
     fun1 = NULL;
     fun2 = NULL;
 }
@@ -338,20 +348,41 @@ void write_handler(int argc,char* argv[]){
     if(argc <= 1){
         return;
     }
-    fprintf(STDOUT,"After: write end: %d\n",atoi(argv[1]));
-    dup2(atoi(argv[1]),STDOUT);
+    close(atoi(argv[1]));
+    dup2(atoi(argv[2]),STDOUT);
     char *name = "fun1";
     char *args[] = {name};
     pid_t pid = exec((uint64_t) fun1,1,args);
+    close(STDOUT);
+    waitpid(pid);
 }
 
 void read_handler(int argc,char* argv[]){
     if(argc <= 1){
         return;
     }
-    fprintf(STDOUT,"After: read end: %d\n",atoi(argv[1]));
+    close(atoi(argv[2]));
     dup2(atoi(argv[1]),STDIN);
     char *name = "fun2";
     char *args[] = {name};
     pid_t pid = exec((uint64_t) fun2,1,args);
+    close(STDIN);
+    waitpid(pid);
 }
+
+// void background_manager(){
+//     char cmd[MAX_SIZE_CMD];
+//     unsigned int i=0;
+//     while(buffer[i] != '&' && i < MAX_SIZE_CMD){
+//         cmd1[i] = buffer[i];
+//         i++;
+//     }
+//     if(i == MAX_SIZE_CMD){
+//         unknown_command();
+//     }
+//     pm fun = command_line(cmd);
+//     if(fun == NULL){
+//         return;
+//     }
+
+// }

@@ -16,6 +16,5 @@ void help(){
 	"time                 Command to display the system day and time.\n"
     "prime                Dispalys prime numbers starting from 2.\n"
     "fibonacci            Dispalys fibonacci series numbers.\n";
-    
     puts(helpstring);
 }

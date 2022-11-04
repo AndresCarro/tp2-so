@@ -16,6 +16,6 @@ void fibonacci_numbs(){
             puts("\b");
             return;
         }
-        puts("\n");
+        puts(" ");
     }
 }

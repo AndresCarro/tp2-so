@@ -1,18 +1,22 @@
 #include <wc.h>
 
+void prueba(){}
+
 void wc(){
-    char * text;
-    int size_read = gets(text);
-    if(size_read == 0){
-        puts("Hay 0 lineas");
-        return;
-    }
-    int j=0,lines=1;
-    for(int i = 0;i < size_read;i++){
-        if(text[i] == '\n' || j == 80){
+    int lines=0;
+    char c,previous=0;
+    while( (c = get_char()) != EOF ){
+        if(c == '\n'){
+            prueba();
             lines++;
-            j=0;
         }
+        put_char(c);
+        previous = c;
+    }
+    if( previous != 0 && lines == 0){
+        lines = 1;
+    }else if(previous != '\n'){
+        lines++;
     }
     fprintf(STDOUT,"Hay %d lineas\n",lines);
 }
