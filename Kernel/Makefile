@@ -1,11 +1,11 @@
 include Makefile.inc
 
 KERNEL=kernel.bin
-SOURCES=$(wildcard *.c)
+SOURCES=$(wildcard *.c */*.c)
 SOURCES_ASM=$(wildcard asm/*.asm)
 OBJECTS=$(SOURCES:.c=.o)
 OBJECTS_ASM=$(SOURCES_ASM:.asm=.o)
-LOADERSRC=loader.asm
+LOADERSRC=loader/loader.asm
 
 LOADEROBJECT=$(LOADERSRC:.asm=.o)
 STATICLIBS=
@@ -26,6 +26,6 @@ $(LOADEROBJECT):
 	$(ASM) $(ASMFLAGS) $(LOADERSRC) -o $(LOADEROBJECT)
 
 clean:
-	rm -rf asm/*.o *.o *.bin *.elf
+	rm -rf asm/*.o *.o *.bin *.elf */*.o */*.bin */*.elf
 
 .PHONY: all clean
