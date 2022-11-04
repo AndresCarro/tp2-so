@@ -29,7 +29,7 @@ uint64_t test_mm(int argc, char * argv[]) {
 		mm_rqs[rq].address = malloc(mm_rqs[rq].size);
 
 		if (mm_rqs[rq].address == NULL) {
-			fprintf(STDOUT, "Llegue al maximo\n");
+			fprintf(STDOUT, "No more memory to allocate.\n");
 			break;
 		}
 

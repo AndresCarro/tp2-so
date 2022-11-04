@@ -1,38 +1,27 @@
-#include <memory_manager.h>
- 
-/* Maximum block size (inclusive) */
-#define MAX_LEVEL 23
+#ifdef BUDDY_MM
 
-/* Minimun block size (inclusive) */
+#include <memory_manager.h>
+
+#define MAX_LEVEL 23
 #define MIN_LEVEL 8
 
-/* Minimun memory size for buddy system (9MB) */
 #define MIN_MEMORY_SIZE (9 * 1024 * 1024)
-
-/* Heap memory size is 8MB, 1MB will be used to allocate an array to represent a complete binary tree */
 #define HEAP_MEMORY_SIZE (8 * 1024 * 1024)
 
-/* Maximun nodes quantity */
 #define MAX_NODES 65535
 
-/* Constants used as parameters in static functions */
 #define FREE 0
 #define TAKEN 1
 #define ALLOC 1
 #define DEALLOC -1
 
 
-// Cantidad total de memoria
 uint64_t total_memory;
-// Cantidad total de memoria que esta siendo utilizada
 uint64_t used_memory;
-// Cantidad de fragmentos en los que está dividida la memoria
 uint64_t memeory_fragments;
 
 typedef struct {
-    // FREE or TAKEN
     unsigned int status;
-    // Estoy incluido
     unsigned int occupied_children;
 } Buddy;
 
@@ -41,10 +30,7 @@ Buddy * buddies;
 void * memory_start;
 void * heap_start;
 
-
-//Crea la lista de memoria, recibe la direcc de memoria donde arranca el heap y el size del mismo.
 void memory_manager_start(void * start_address, uint64_t size_heap) {
-
     if (size_heap < MIN_MEMORY_SIZE) {
         return;
     }
@@ -108,7 +94,7 @@ unsigned int get_parent_index(unsigned int index) {
 void update_parents_status(unsigned int index, unsigned int operation) {
     buddies[index].occupied_children += operation;
 
-    while(index != 0) {
+    while (index != 0) {
         index = get_parent_index(index);
         buddies[index].occupied_children += operation;
     }
@@ -160,7 +146,7 @@ void * memory_manager_alloc( uint64_t size ) {
     return obtain_address(index, level);
 }
 
-int search_node(int index, int* level, void* ptr) {
+int search_node(int index, int * level, void * ptr) {
     if (*level < MIN_LEVEL) {
         return -1;
     }
@@ -168,18 +154,18 @@ int search_node(int index, int* level, void* ptr) {
     if (!buddies[index].status) {
         (*level)--;
         int right_child_index = get_right_child_index(index);
-        void* address = obtain_address(right_child_index, *level);
+        void * address = obtain_address(right_child_index, *level);
         return search_node(ptr < address ? get_left_child_index(index) : right_child_index, level, ptr);
     }
 
-    if(ptr == obtain_address(index, *level)) {
+    if (ptr == obtain_address(index, *level)) {
         return index;
     }
     return -1;
 }
 
 
-int get_max_posible_level(void* ptr) {
+int get_max_posible_level(void * ptr) {
     int relative_address = ptr - heap_start;
     int level = MAX_LEVEL;
     int pow_of_two = 1 << MAX_LEVEL;
@@ -191,16 +177,15 @@ int get_max_posible_level(void* ptr) {
     return level;
 }
 
-int get_start_searching_index(void* ptr, int max_level) {
+int get_start_searching_index(void * ptr, int max_level) {
     int relative_address = ptr - heap_start;
     return get_first_index_for_level(max_level) + (relative_address / (1 << max_level));
 }
 
-/*Libera la memoria y agrega un/unos nodo/s a la lista de memoria libre. Que si tienen 
-nodos contiguos libres los junta.*/
 void memory_manager_free(void * ptr) {
-    if (ptr == NULL || ptr < heap_start || ptr >= (heap_start + HEAP_MEMORY_SIZE))
+    if (ptr == NULL || ptr < heap_start || ptr >= (heap_start + HEAP_MEMORY_SIZE)) {
         return;
+    }
 
     int level = get_max_posible_level(ptr);
     int index = search_node(get_start_searching_index(ptr, level), &level, ptr);
@@ -224,3 +209,5 @@ MemInfo * mem_info() {
     info->memory_frags = memeory_fragments;
     return info;
 }
+
+#endif
