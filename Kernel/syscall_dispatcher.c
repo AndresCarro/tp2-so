@@ -1,125 +1,135 @@
-#include <syscallDispatcher.h>
+#include <syscall_dispatcher.h>
 #include <defs.h>
-#include <scheduler2.h>
+#include <stdint.h>
+#include <scheduler.h>
 #include <memory_manager.h>
 #include <semaphore.h>
+#include <dates.h>
+#include <kernel_types.h>
+#include <console_driver.h>
+#include <pipe.h>
+#include <blocked_queue.h>
+#include <lib.h>
 
 static uint64_t sys_read(unsigned int fd, char* output, uint64_t count);
 static void sys_write(unsigned fd, const char* buffer, uint64_t count);
+
 static pid_t sys_exec(uint64_t program, unsigned int argc, char * argv[]);
 static void sys_exit(int retValue, char autokill);
+
+static pid_t sys_getpid();
 static pid_t sys_waitpid(pid_t pid);
+
+static int sys_yield_process();
+static int sys_block_process(pid_t pid);
+static int sys_unblock_process(pid_t pid);
+
+static int sys_kill(pid_t pid);
 static int sys_nice(pid_t pid, int new_priority);
 
-static void sys_time(time_t * s);
-static void sys_copymem(uint64_t address, uint8_t * buffer, uint64_t length);
 static void * sys_malloc(uint64_t size);
 static void sys_free(uint64_t ptr);
-static MemInfo * sys_get_mem_info();
+
 static sem_t sys_sem_open(char * name, int initial_value);
 static void sys_sem_close(sem_t sem);
 static int sys_sem_wait(sem_t sem);
 static int sys_sem_post(sem_t sem);
+
 static int sys_pipe(int fds[]);
 static void sys_dup2(int old, int new);
 static void sys_close(int fd);
+
+static MemInfo * sys_get_mem_info();
 static PipeInfo * sys_get_pipe_info();
 static SemInfo * sys_get_sem_info();
 static PCBInfo * sys_get_process_info();
-static int sys_kill(pid_t pid);
-static int sys_block_process(pid_t pid);
-static int sys_unblock_process(pid_t pid);
-static pid_t sys_getpid();
-static int sys_yield_process();
 
-uint64_t syscallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rax, uint64_t * registers){
-    switch(rax){
+static void sys_time(time_t * s);
+
+uint64_t syscall_dispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rax){
+    switch(rax) {
         case 0:
-            return sys_read((unsigned int)rdi, (char*)rsi,rdx);
+            return sys_read((unsigned int) rdi, (char *) rsi, rdx);
             break;
         case 1:
-            sys_write((unsigned int)rdi, (char*)rsi,rdx);
+            sys_write((unsigned int) rdi, (char *) rsi, rdx);
             break;
         case 2:
-            return (uint64_t) getRegisters((uint64_t *)rdi);
-            break;
-        case 3:
             return sys_exec(rdi, (unsigned int) rsi, (char **) rdx);
             break;
-        case 4:
+        case 3:
             sys_exit((int) rdi, 1);
             break;
-        case 5:
-            sys_time((time_t*)rdi);
-            break;
-        case 6:
-            sys_copymem(rdi,(uint8_t *) rsi, rdx);
-            break;
-        case 7:
-            return (uint64_t) sys_malloc(rdi);
-            break;
-        case 8:
-            sys_free(rdi);
-            break;
-        case 9:
-            return sys_get_mem_info();
-            break;
-        case 10:
-            return sys_waitpid((pid_t) rdi);
-            break;
-        case 11:
-            return sys_nice((pid_t) rdi, (int) rsi);
-            break;
-        case 12:
-            return sys_sem_open((char *) rdi, (int) rsi);
-            break;
-        case 13:
-            sys_sem_close((sem_t) rdi);
-            break;
-        case 14:
-            return sys_sem_wait((sem_t) rdi);
-            break;
-        case 15:
-            return sys_sem_post((sem_t) rdi);
-            break;
-        case 16:
-            return sys_pipe((int *) rdi);
-            break;
-        case 17:
-            sys_dup2((int) rdi, (int) rsi);
-            break;
-        case 18:
-            sys_close((int) rdi);
-            break;
-        case 19:
-            return sys_get_pipe_info();
-            break;
-        case 20:
-            return sys_get_sem_info();
-            break;
-        case 21:
-            return sys_get_process_info();
-            break;
-        case 22:
-            return sys_kill((pid_t) rdi);
-            break;
-        case 23:
-            return sys_block_process((pid_t) rdi);
-            break;
-        case 24:
-            return sys_unblock_process((pid_t) rdi);
-            break;
-        case 25:
+        case 4:
             return sys_getpid();
             break;
-        case 26:
+        case 5:
+            return sys_waitpid((pid_t) rdi);
+            break;
+        case 6:
             return sys_yield_process();
+            break;
+        case 7:
+            return sys_block_process((pid_t) rdi);
+            break;
+        case 8:
+            return sys_unblock_process((pid_t) rdi);
+            break;
+        case 9:
+            return sys_kill((pid_t) rdi);
+            break;
+        case 10:
+            return sys_nice((pid_t) rdi, (int) rsi);
+            break;
+        case 11:
+            return sys_malloc(rdi);
+            break;
+        case 12:
+            sys_free(rdi);
+            break;
+        case 13:
+            return sys_sem_open((char *) rdi, (uint8_t) rsi);
+            break;
+        case 14:
+            sys_sem_close((sem_t) rdi);
+            break;
+        case 15:
+            return sys_sem_wait((sem_t) rdi);
+            break;
+        case 16:
+            return sys_sem_post((sem_t) rdi);
+            break;
+        case 17:
+            return sys_pipe((int *) rdi);
+            break;
+        case 18:
+            sys_dup2((int) rdi, (int) rsi);
+            break;
+        case 19:
+            sys_close((int) rdi);
+            break;
+        case 20:
+            return sys_get_mem_info();
+            break;
+        case 21:
+            return sys_get_pipe_info();
+            break;
+        case 22:
+            return sys_get_sem_info();
+            break;
+        case 23:
+            return sys_get_process_info();
+            break;
+        case 24:
+            sys_time((time_t *) rdi);
+            break;
+        default:
             break;
     }
     return 0;
 }
 
-static uint64_t sys_read(unsigned int fd, char * output, uint64_t count){
+static uint64_t sys_read(unsigned int fd, char * output, uint64_t count) {
     PCB * pcb = get_process(get_current_pid());
     fd_t * table = pcb->file_desciptors;
     unsigned int last_fd = pcb->last_fd;
@@ -130,7 +140,7 @@ static uint64_t sys_read(unsigned int fd, char * output, uint64_t count){
     return pipe_read(table[fd].pipe, output, count);
 }
 
-static void sys_write(unsigned fd, const char * buffer, uint64_t count){
+static void sys_write(unsigned fd, const char * buffer, uint64_t count) {
     PCB * pcb = get_process(get_current_pid());
     fd_t * table = pcb->file_desciptors;
     unsigned int last_fd = pcb->last_fd;
@@ -141,18 +151,18 @@ static void sys_write(unsigned fd, const char * buffer, uint64_t count){
 
     if (fd == STDOUT && table[fd].pipe == NULL) {
         for (int i = 0; i < count; i++) {
-            ncPrintChar(buffer[i]);
+            print_char(buffer[i]);
         }
         return;
     }
     return pipe_write(table[fd].pipe, buffer, count);
 }
 
-static pid_t sys_exec(uint64_t program, unsigned int argc, char * argv[]){
+static pid_t sys_exec(uint64_t program, unsigned int argc, char * argv[]) {
     return create_process(program, argc, argv);
 }
 
-static void sys_exit(int return_value, char autokill){
+static void sys_exit(int return_value, char autokill) {
     PCB * pcb = get_process(get_current_pid());
     unsigned int last_fd = pcb->last_fd;
 
@@ -161,6 +171,10 @@ static void sys_exit(int return_value, char autokill){
     }
 
     terminate_process(return_value, autokill);
+}
+
+static pid_t sys_getpid() {
+    return get_current_pid();
 }
 
 static pid_t sys_waitpid(pid_t pid) {
@@ -176,21 +190,30 @@ static pid_t sys_waitpid(pid_t pid) {
     return pid;
 }
 
+static int sys_yield_process() {
+    return yield_process();
+}
+
+static int sys_block_process(pid_t pid) {
+    return block_process(pid);
+}
+
+static int sys_unblock_process(pid_t pid) {
+    return unblock_process(pid);
+}
+
+static int sys_kill(pid_t pid) {
+    int x = prepare_process_for_work(pid);
+    if (x == -1) {
+        return -1;
+    }
+
+    sys_exit(0, 0);
+    return 0;
+}
+
 static int sys_nice(pid_t pid, int new_priority) {
     return change_priority(pid, new_priority);
-}
-
-static void sys_time(time_t * s){
-    s->day = localDay();
-    s->month = localMonth();
-    s->year = localYear();
-    s->hours = localHours();
-    s->minutes = getMinutes();
-    s->seconds = getSeconds();
-}
-
-static void sys_copymem(uint64_t address, uint8_t * buffer, uint64_t length){
-    memcpy((void*)buffer, (void*)address, length);
 }
 
 static void * sys_malloc(uint64_t size) {
@@ -199,10 +222,6 @@ static void * sys_malloc(uint64_t size) {
 
 static void sys_free(uint64_t ptr) {
     memory_manager_free((void *) ptr);
-}
-
-static MemInfo * sys_get_mem_info() {
-    return mem_info();
 }
 
 static sem_t sys_sem_open(char * name, int initial_value) {
@@ -300,6 +319,10 @@ static void sys_close(int fd) {
     pcb->last_fd = last_fd;
 }
 
+static MemInfo * sys_get_mem_info() {
+    return mem_info();
+}
+
 static PipeInfo * sys_get_pipe_info() {
     return pipe_info();
 }
@@ -312,28 +335,11 @@ static PCBInfo * sys_get_process_info() {
     return process_info();
 }
 
-static int sys_kill(pid_t pid) {
-    int x = prepare_process_for_work(pid);
-    if (x == -1) {
-        return -1;
-    }
-
-    sys_exit(0, 0);
-    return 0;
-}
-
-static int sys_block_process(pid_t pid) {
-    return block_process(pid);
-}
-
-static int sys_unblock_process(pid_t pid) {
-    return unblock_process(pid);
-}
-
-static pid_t sys_getpid() {
-    return get_current_pid();
-}
-
-static int sys_yield_process() {
-    return yield_process();
+static void sys_time(time_t * s){
+    s->day = local_day();
+    s->month = local_month();
+    s->year = local_year();
+    s->hours = local_hours();
+    s->minutes = get_minutes();
+    s->seconds = get_seconds();
 }

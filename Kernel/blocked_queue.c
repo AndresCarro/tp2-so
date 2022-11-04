@@ -1,10 +1,9 @@
 #include <blocked_queue.h>
+#include <memory_manager.h>
 
-// Esto es lo que usa un proceso para determinar los procesos bloqueados por el mismo
-// Ejemplo: lo usaria el semaforo para saber quienes estan bloqueados esperando al semaforo
 BlockedQueueADT new_blocked_queue() {
     BlockedQueueADT queue = memory_manager_alloc(sizeof(BlockedQueueCDT));
-    if(queue == NULL) {
+    if (queue == NULL) {
         return NULL;
     }
     queue->first = NULL;
@@ -21,11 +20,11 @@ int is_empty(BlockedQueueADT queue) {
 }
 
 pid_t dequeue_pid(BlockedQueueADT queue) {
-    if(queue == NULL) {
+    if (queue == NULL) {
         return -1;
     }
     BlockedNode * first = queue->first;
-    if(first == NULL) {
+    if (first == NULL) {
         return -1;
     }
     queue->qty--;
@@ -36,13 +35,13 @@ pid_t dequeue_pid(BlockedQueueADT queue) {
 }
 
 void enqueue_pid(BlockedQueueADT queue, pid_t pid) {
-    if(queue == NULL) {
+    if (queue == NULL) {
         return -1;
     }
     BlockedNode * new_node = memory_manager_alloc(sizeof(BlockedNode));
     new_node->pid = pid;
     new_node->next = NULL;
-    if(queue->first == NULL) {
+    if (queue->first == NULL) {
         queue->first = new_node;
         queue->last = new_node;
     } else {

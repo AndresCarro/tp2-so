@@ -1,7 +1,24 @@
 #ifndef GENERAL_INFO_H
 #define GENERAL_INFO_H
 
-#include <defs.h>
+#include <stdint.h>
+#include <stddef.h>
+
+typedef int pid_t;
+typedef unsigned int status_t;
+
+#define STDIN 0
+#define STDOUT 1
+
+typedef void (*ptr)();
+typedef ptr (*pm)();
+
+typedef uint64_t sem_t;
+
+typedef struct {
+    uint8_t day, month, year;
+    uint8_t hours, minutes, seconds;
+} time_t;
 
 typedef struct pcbinfo {
     char * name;

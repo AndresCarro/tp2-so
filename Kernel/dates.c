@@ -1,55 +1,46 @@
 #include <dates.h>
+#include <lib.h>
 
-static uint8_t getPreviousDay(uint8_t day);
+static uint8_t days_per_month[2][13] = {{0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
+                                      {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}};
 
-
-uint8_t localHours(void)
-{
-    uint8_t hour = getHours();
-    if (hour >= 0 && hour <= 3)
-    {
+uint8_t local_hours() {
+    uint8_t hour = get_hours();
+    if (hour >= 0 && hour <= 3) {
         return hour - 3 + 21;
     }
     return hour - 3;
 }
 
-static uint8_t getPreviousDay(uint8_t day){
-    uint8_t year = getYear();
-    uint8_t dayMonth[13] = { 31, 31 , 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 0};
-    if( year%4==0 && ( year%100!=0 || year%400==0 )){
-        dayMonth[2]=29;
-    }
-    return dayMonth[ (int)localMonth()-1 ];
-}
-
-uint8_t localDay(void)
-{
-    uint8_t day = getDay();
-    if(getHours()<=3){
-        if(day==1){
-            getPreviousDay(day);
+uint8_t local_day() {
+    uint8_t day = get_day();
+    if (get_hours() <= 3) {
+        if (day == 1) {
+            uint8_t year = get_year();
+            char leap_year = 0;
+            if (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)) {
+                leap_year = 1;
+            }
+            return days_per_month[leap_year][local_month()];
         }
-        return day-1;
+        return day - 1;
     }
-    return getDay();
+    return get_day();
 }
 
-uint8_t localMonth(void)
-{
-    if( getHours()<=3 && getDay()==1 ){
-        if(getMonth()==1){
+uint8_t local_month() {
+    if (get_hours() <= 3 && get_day() == 1) {
+        if (get_month() == 1) {
             return 12;
         }
-        return getMonth()-1;
+        return get_month() - 1;
     }
-    return getMonth();
+    return get_month();
 }
 
-uint8_t localYear(void)
-{
-    if( getHours()<=3 && getDay()==1 && getMonth()==1 ){
-        return getYear()-1;
+uint8_t local_year() {
+    if (get_hours() <= 3 && get_day() == 1 && get_month() == 1) {
+        return get_year() - 1;
     }
-    return getYear();
-
+    return get_year();
 }

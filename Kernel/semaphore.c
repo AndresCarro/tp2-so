@@ -1,4 +1,8 @@
 #include <semaphore.h>
+#include <lib.h>
+#include <memory_manager.h>
+#include <blocked_queue.h>
+#include <scheduler.h>
 
 extern int spinlock(uint8_t * lock);
 extern void unlock(uint8_t * lock);

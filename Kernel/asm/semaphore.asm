@@ -1,5 +1,5 @@
-GLOBAL spinlock
-GLOBAL unlock
+global spinlock
+global unlock
 
 spinlock:
     mov rax, 0

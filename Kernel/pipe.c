@@ -1,4 +1,7 @@
 #include <pipe.h>
+#include <blocked_queue.h>
+#include <memory_manager.h>
+#include <scheduler.h>
 
 PipeList pipes = NULL;
 
