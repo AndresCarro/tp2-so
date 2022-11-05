@@ -44,7 +44,7 @@ char ** pipe_argv[2] = {};
 void bash() {
     int i=0;
     while (i != -1){
-        fprintf(STDOUT, "Agodn't.IO:$ ");
+        fprintf(STDOUT, "turtleOS:$> ");
         i = read_input();
     }
 }

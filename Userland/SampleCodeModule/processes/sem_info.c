@@ -10,8 +10,9 @@ void sem(int argc, char * argv[]) {
         fprintf(STDOUT, "There are no active semaphores.\n");
         return;
     }
+    fprintf(STDOUT, "%-20s%-10s%-20s%-20s\n", "NAME", "VALUE", "BLOCKED PROCESSES", "LINKED PROCESSES");
     while (info != NULL) {
-        fprintf(STDOUT, "Name: %s; Value: %d; Blocked Processes: %d; Linked Processes: %d\n", info->name, info->value, info->blocked_processes, info->linked_processes);
+        fprintf(STDOUT, "%-20s%-10d%-20d%-20d\n", info->name, info->value, info->blocked_processes, info->linked_processes);
         info = info->next;
     }
     while (info != NULL) {
