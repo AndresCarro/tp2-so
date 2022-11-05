@@ -1,5 +1,3 @@
-/* sampleCodeModule.c */
-
 #include <bash.h>
 
 int main() {

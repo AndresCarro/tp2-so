@@ -1,18 +1,20 @@
-#ifndef GENERAL_INFO_H
-#define GENERAL_INFO_H
+#ifndef TYPES_H
+#define TYPES_H
 
 #include <stdint.h>
 #include <stddef.h>
 
-typedef int pid_t;
-typedef unsigned int status_t;
+#define MAX_BUFFER 256
 
 #define STDIN 0
 #define STDOUT 1
 
-typedef void (*ptr)();
-typedef ptr (*pm)();
+#define EOF -1
 
+typedef void (* command)(int, char **);
+
+typedef int pid_t;
+typedef unsigned int status_t;
 typedef uint64_t sem_t;
 
 typedef struct {

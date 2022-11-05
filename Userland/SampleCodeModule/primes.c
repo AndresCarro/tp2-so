@@ -1,5 +1,6 @@
 #include <processes.h>
 #include <types.h>
+#include <syslib.h>
 
 int is_prime(int n) {
 	int i;
@@ -11,12 +12,12 @@ int is_prime(int n) {
 	return 1;
 }
 
-void primes() {
+void primes(int argc, char * argv[]) {
     int i = 2;
     fprintf(STDOUT, "Prime numbers: \n");
     while (1) {
         if (i < 0) {
-            return
+            return;
         }
         if (is_prime(i)) {
             fprintf(STDOUT, "%d,\n", i);

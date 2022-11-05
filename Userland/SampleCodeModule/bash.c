@@ -1,5 +1,8 @@
 #include <bash.h>
+#include <types.h>
 #include <processes.h>
+#include <syscalls.h>
+#include <syslib.h>
 
 #define MAX_DIGIT_PID 3
 #define COMMAND_COUNT 5
@@ -10,9 +13,6 @@
 #define KILL_BUILTIN 4
 
 static char buffer[MAX_BUFFER];
-
-static command fun1 = NULL;
-static command fun2 = NULL;
 
 int read_input();
 
@@ -44,7 +44,7 @@ char ** pipe_argv[2] = {};
 void bash() {
     int i=0;
     while (i != -1){
-        puts("Agodn't.IO:$ ");
+        fprintf(STDOUT, "Agodn't.IO:$ ");
         i = read_input();
     }
 }
@@ -85,25 +85,25 @@ int read_input(){
         command fun = command_parser(parts[0]);
         if (fun == NULL) {
             unknown_command(parts[0]);
-        } else if (fun == BLOCK_BUILTIN) {
+        } else if ((uint64_t) fun == BLOCK_BUILTIN) {
             if (part_count != 2) {
                 fprintf(STDOUT, "ERROR: Must provide only one argument.");
             } else {
                 kill_handler(parts[1]);
             }
-        } else if (fun == UNBLOCK_BUILTIN) {
+        } else if ((uint64_t) fun == UNBLOCK_BUILTIN) {
             if (part_count != 2) {
                 fprintf(STDOUT, "ERROR: Must provide only one argument.");
             } else {
                 kill_handler(parts[1]);
             }
-        } else if (fun == NICE_BUILTIN) {
+        } else if ((uint64_t) fun == NICE_BUILTIN) {
             if (part_count != 3) {
                 fprintf(STDOUT, "ERROR: Must provide only two arguments.");
             } else {
                 nice_handler(parts[1], parts[2]);
             }
-        } else if (fun == KILL_BUILTIN) {
+        } else if ((uint64_t) fun == KILL_BUILTIN) {
             if (part_count != 2) {
                 fprintf(STDOUT, "ERROR: Must provide only one argument.");
             } else {
@@ -133,10 +133,10 @@ command command_parser(char * name){
         return (command) loop;
     } else if (strcmp(name, "sem") == 0) {
         return (command) sem;
-    } else if (strcmp(name, "pipe") == 0) {
-        return (command) pipe;
+    } else if (strcmp(name, "pipes") == 0) {
+        return (command) pipes;
     } else if (strcmp(name, "time") == 0) {
-        return (command) time;
+        return (command) print_time;
     } else if (strcmp(name, "primes") == 0) {
         return (command) primes;
     } else if (strcmp(name, "fibonacci") == 0) {
@@ -158,25 +158,25 @@ command command_parser(char * name){
     }  else if (strcmp(name, "phylo") == 0) {
         return (command) phylo;
     } else if (strcmp(name, "block") == 0) {
-        return BLOCK_BUILTIN;
+        return (command) BLOCK_BUILTIN;
     } else if (strcmp(name, "unblock") == 0) {
-        return UNBLOCK_BUILTIN;
+        return (command) UNBLOCK_BUILTIN;
     } else if (strcmp(name, "nice") == 0) {
-        return NICE_BUILTIN;
+        return (command) NICE_BUILTIN;
     } else if (contains_string(name, "kill") == 0) {
-        return KILL_BUILTIN;
+        return (command) KILL_BUILTIN;
     }
     return NULL;
 }
 
 void pipe_manager(char ** parts, int part_count, int pipe_position) {
     command fun_1 = command_parser(parts[0]);
-    if (fun_1 == NULL || fun_1 == BLOCK_BUILTIN || fun_1 == UNBLOCK_BUILTIN || fun_1 == NICE_BUILTIN || fun_1 == KILL_BUILTIN) {
+    if (fun_1 == NULL || (uint64_t) fun_1 == BLOCK_BUILTIN || (uint64_t) fun_1 == UNBLOCK_BUILTIN || (uint64_t) fun_1 == NICE_BUILTIN || (uint64_t) fun_1 == KILL_BUILTIN) {
         unknown_command(parts[0]);
         return;
     }
     command fun_2 = command_parser(parts[pipe_position + 1]);
-    if (fun_2 == NULL || fun_2 == BLOCK_BUILTIN || fun_2 == UNBLOCK_BUILTIN || fun_2 == NICE_BUILTIN || fun_2 == KILL_BUILTIN) {
+    if (fun_2 == NULL || (uint64_t) fun_2 == BLOCK_BUILTIN || (uint64_t) fun_2 == UNBLOCK_BUILTIN || (uint64_t) fun_2 == NICE_BUILTIN || (uint64_t) fun_2 == KILL_BUILTIN) {
         unknown_command(parts[pipe_position + 1]);
         return;
     }
@@ -237,14 +237,14 @@ void write_handler(int argc, char * argv[]) {
 
 void background_manager(char * name) {
     command fun = command_parser(name + 1);
-    if (fun == NULL || fun == BLOCK_BUILTIN || fun == UNBLOCK_BUILTIN || fun == NICE_BUILTIN || fun == KILL_BUILTIN) {
+    if (fun == NULL || (uint64_t) fun == BLOCK_BUILTIN || (uint64_t) fun == UNBLOCK_BUILTIN || (uint64_t) fun == NICE_BUILTIN || (uint64_t) fun == KILL_BUILTIN) {
         fprintf(STDOUT, "ERROR. Command < %s > not found or not supported for backround.", name + 1);
         return;
     }
     bck_fun = fun;
 
-    char * name = "Background Handler";
-    char * argv_aux[] = {name};
+    char * handler_n = "Background Handler";
+    char * argv_aux[] = {handler_n};
     pid_t pid = exec((uint64_t) background_handler, 1 , argv_aux);
     waitpid(pid);
     bck_fun = NULL;
@@ -254,7 +254,7 @@ void background_manager(char * name) {
 
 void background_handler(int argc, char * argv[]) {
     close(STDOUT);
-    pid_t pid = exec((uint64_t) bck_fun, bck_argc, bck_argv);
+    exec((uint64_t) bck_fun, bck_argc, bck_argv);
 }
 
 void block_handler(char * pid) {

@@ -1,5 +1,7 @@
 #include <processes.h>
 #include <types.h>
+#include <syslib.h>
+#include <syscalls.h>
 
 void loop(int argc, char * argv[]) {
     pid_t pid = getpid();

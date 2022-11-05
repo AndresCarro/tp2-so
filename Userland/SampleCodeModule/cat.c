@@ -1,5 +1,6 @@
 #include <processes.h>
 #include <types.h>
+#include <syslib.h>
 
 void cat(int argc, char * argv[]) {
     int i = 0, c = get_char();

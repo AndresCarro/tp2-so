@@ -1,5 +1,6 @@
 #include <processes.h>
 #include <types.h>
+#include <syslib.h>
 
 void fibonacci(int argc, char * argv[]) {
     char num[30];
