@@ -1,11 +1,15 @@
 
 all:  bootloader kernel userland image
+buddy: bootloader kernel_buddy userland image
 
 bootloader:
 	cd Bootloader; make all
 
 kernel:
 	cd Kernel; make all
+
+kernel_buddy:
+	cd Kernel; make buddy
 
 userland:
 	cd Userland; make all

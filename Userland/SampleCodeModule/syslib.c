@@ -15,7 +15,7 @@ int is_num(char c) {
 
 int puts(const char * str){
     int len = strlen(str);
-    return sys_write(STDOUT, str, len);
+    write(STDOUT, str, len);
 }
 
 int put_char(char c){
@@ -45,9 +45,6 @@ int gets(char * s){
 char get_char(){
     char c;
     sys_read(STDIN, &c, 1);
-    // if(c == 0){
-    //     return EOF;
-    // }
     return c;
 }
 
@@ -269,5 +266,5 @@ void fprintf(int fd, char * str, ...) {
         i++;
     }
     va_end(vl);
-    sys_write(fd, buff, j);
+    write(fd, buff, j);
  }

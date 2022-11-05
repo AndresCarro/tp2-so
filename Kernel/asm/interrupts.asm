@@ -1,30 +1,22 @@
+global _cli
+global _sti
+global _master_pic_mask
+global _slave_pic_mask
+global _hlt
 
-GLOBAL _cli
-GLOBAL _sti
-GLOBAL picMasterMask
-GLOBAL picSlaveMask
-GLOBAL haltcpu
-GLOBAL _endhaltcpu
-GLOBAL _hlt
+global _irq00_handler
+global _irq01_handler
+global _irq02_handler
+global _irq03_handler
+global _irq04_handler
+global _irq05_handler
 
-GLOBAL _irq00Handler
-GLOBAL _irq01Handler
-GLOBAL _irq02Handler
-GLOBAL _irq03Handler
-GLOBAL _irq04Handler
-GLOBAL _irq05Handler
-
-GLOBAL _exception0Handler
-GLOBAL _exception6Handler
-
-EXTERN irqDispatcher
-EXTERN exceptionDispatcher
-
+extern irq_dispatcher
 extern context_switch
 
-SECTION .text
+section .text
 
-%macro pushState 0
+%macro push_state 0
 	push rax
 	push rbx
 	push rcx
@@ -42,7 +34,7 @@ SECTION .text
 	push r15
 %endmacro
 
-%macro popState 0
+%macro pop_state 0
 	pop r15
 	pop r14
 	pop r13
@@ -60,40 +52,19 @@ SECTION .text
 	pop rax
 %endmacro
 
-%macro irqHandlerMaster 1
-	pushState
+%macro irq_handler_master 1
+	push_state
 
 	mov rdi, %1 ; pasaje de parametro
-	mov rsi, rsp	; pointer a backup registros
-	call irqDispatcher
+	call irq_dispatcher
 
 	; signal pic EOI (End of Interrupt)
 	mov al, 20h
 	out 20h, al
 
-	popState
+	pop_state
 	iretq
 %endmacro
-
-
-%macro exceptionHandler 1
-	pushState
-
-	;rdi, rsi, rdx, rcx, r8 y r9
-	mov rdi, %1 ; pasaje de parametro
-	mov rsi, [rsp+15*8]	; Position of the original RIP in the stack
-	mov rdx, [rsp+18*8]	; Position of the original RSP in the stack
-	mov rcx, rsp
-	call exceptionDispatcher
-
-	;Should we call haltcpu? _hlt? go to the return of the main function?
-	;Should we call or modify the RIP value in the stack?
-	call haltcpu
-
-	popState
-	iretq
-%endmacro
-
 
 _hlt:
 	sti
@@ -109,7 +80,7 @@ _sti:
 	sti
 	ret
 
-picMasterMask:
+_master_pic_mask:
 	push rbp
     mov rbp, rsp
     mov ax, di
@@ -117,22 +88,21 @@ picMasterMask:
     pop rbp
     retn
 
-picSlaveMask:
-	push    rbp
-    mov     rbp, rsp
-    mov     ax, di  ; ax = mascara de 16 bits
-    out		0A1h,al
-    pop     rbp
+_slave_pic_mask:
+	push rbp
+    mov rbp, rsp
+    mov ax, di
+    out 0A1h, al
+    pop rbp
     retn
 
 
 ;8254 Timer (Timer Tick)
-_irq00Handler:
-	pushState
+_irq00_handler:
+	push_state
 
 	mov rdi, 0
-	mov rsi, rsp	; pointer a backup registros
-	call irqDispatcher
+	call irq_dispatcher
 
 	mov rdi, rsp
     call context_switch
@@ -142,41 +112,25 @@ _irq00Handler:
 	mov al, 20h
 	out 20h, al
 
-	popState
+	pop_state
 	iretq
 
 ;Keyboard
-_irq01Handler:
-	irqHandlerMaster 1
+_irq01_handler:
+	irq_handler_master 1
 
 ;Cascade pic never called
-_irq02Handler:
-	irqHandlerMaster 2
+_irq02_handler:
+	irq_handler_master 2
 
 ;Serial Port 2 and 4
-_irq03Handler:
-	irqHandlerMaster 3
+_irq03_handler:
+	irq_handler_master 3
 
 ;Serial Port 1 and 3
-_irq04Handler:
-	irqHandlerMaster 4
+_irq04_handler:
+	irq_handler_master 4
 
 ;USB
-_irq05Handler:
-	irqHandlerMaster 5
-
-
-;Zero Division Exception
-_exception0Handler:
-	exceptionHandler 0
-
-;Invalid Opcode Exception
-_exception6Handler:
-	exceptionHandler 6
-
-haltcpu:
-	sti
-	hlt
-_endhaltcpu:
-	jmp haltcpu
-
+_irq05_handler:
+	irq_handler_master 5

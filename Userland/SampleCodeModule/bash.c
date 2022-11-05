@@ -39,7 +39,7 @@ command pipe_fun[2] = {};
 int pipe_argc[2] = {-1,-1};
 char ** pipe_argv[2] = {};
 
-extern void halt();
+// extern void halt();
 
 void bash() {
     int i=0;

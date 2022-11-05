@@ -1,9 +1,10 @@
-GLOBAL _syscallHandler
-EXTERN syscallDispatcher
+global _syscall_handler
 
-SECTION .text
+extern syscall_dispatcher
 
-_syscallHandler:
+section .text
+
+_syscall_handler:
 	push rax
 	push rbx
 	push rcx
@@ -20,12 +21,8 @@ _syscallHandler:
 	push r14
 	push r15
 
-    ;rax, rdi, rsi, rdx |||, r10, r8, r9
-
-	;rdi, rsi, rdx, rcx |||, r8 y r9
 	mov rcx, rax
-	mov r8, rsp
-    call syscallDispatcher
+    call syscall_dispatcher
 
 	pop r15
 	pop r14
@@ -41,7 +38,6 @@ _syscallHandler:
 	pop rdx
 	pop rcx
 	pop rbx
-	; Instead of pop rax
-	add rsp, 8
+	add rsp, 8 ;Instead of pop rax
 
     iretq
