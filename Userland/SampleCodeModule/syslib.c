@@ -133,7 +133,7 @@ int is_num(char c) {
 void fprintf(int fd, char * str, ...) {
     va_list vl;
 	int i = 0, j=0;
-    char buff[100]={0}, tmp[20];
+    char buff[MAX_BUFFER]={0}, tmp[100];
     va_start( vl, str ); 
 
     while (str && str[i]) {
@@ -165,6 +165,10 @@ void fprintf(int fd, char * str, ...) {
         } else {
             buff[j] = str[i];
             j++;
+            if (j == MAX_BUFFER) {
+                write(fd, buff, j);
+                j = 0;
+            }
         }
         i++;
     }
