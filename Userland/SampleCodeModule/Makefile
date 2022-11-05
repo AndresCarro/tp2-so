@@ -1,7 +1,7 @@
 include ../Makefile.inc
 
 MODULE=0000-sampleCodeModule.bin
-SOURCES=$(wildcard [^_]*.c)
+SOURCES=$(wildcard [^_]*.c */*.c)
 MODULEELF=0000-sampleCodeModule.elf
 SOURCES_ASM=$(wildcard asm/*.asm)
 OBJECTS=$(SOURCES:.c=.o)
@@ -25,6 +25,6 @@ $(LOADEROBJECT):
 	$(GCC) $(GCCFLAGS) -I./include -c $(LOADERSRC) -o $(LOADEROBJECT)
 
 clean:
-	rm -rf asm/*.o *.o *.bin
+	rm -rf asm/*.o *.o *.bin */*.o */*.bin */*.elf
 
 .PHONY: all clean print

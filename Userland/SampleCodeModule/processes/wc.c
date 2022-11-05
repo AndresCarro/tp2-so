@@ -9,7 +9,6 @@ void wc(int argc, char *argv[]) {
         if (c == '\n') {
             lines++;
         }
-        put_char(c);
         previous = c;
     }
     if (previous != 0 && lines == 0) {
