@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define WAIT_TIME 1947324
+
 char ** strtok(char * str, char delim, int * qty);
 unsigned int strlen(char * s);
 int strcmp(char * p1, char * p2);

@@ -87,25 +87,25 @@ int read_input(){
             unknown_command(parts[0]);
         } else if ((uint64_t) fun == BLOCK_BUILTIN) {
             if (part_count != 2) {
-                fprintf(STDOUT, "ERROR: Must provide only one argument.");
+                fprintf(STDOUT, "ERROR: Must provide only one argument.\n");
             } else {
-                kill_handler(parts[1]);
+                block_handler(parts[1]);
             }
         } else if ((uint64_t) fun == UNBLOCK_BUILTIN) {
             if (part_count != 2) {
-                fprintf(STDOUT, "ERROR: Must provide only one argument.");
+                fprintf(STDOUT, "ERROR: Must provide only one argument.\n");
             } else {
-                kill_handler(parts[1]);
+                unblock_handler(parts[1]);
             }
         } else if ((uint64_t) fun == NICE_BUILTIN) {
             if (part_count != 3) {
-                fprintf(STDOUT, "ERROR: Must provide only two arguments.");
+                fprintf(STDOUT, "ERROR: Must provide only two arguments.\n");
             } else {
                 nice_handler(parts[1], parts[2]);
             }
         } else if ((uint64_t) fun == KILL_BUILTIN) {
             if (part_count != 2) {
-                fprintf(STDOUT, "ERROR: Must provide only one argument.");
+                fprintf(STDOUT, "ERROR: Must provide only one argument.\n");
             } else {
                 kill_handler(parts[1]);
             }
@@ -118,8 +118,7 @@ int read_input(){
 }
 
 void unknown_command(char * name) {
-    fprintf(STDOUT, "ERROR: Unknown command < %s >.", name);
-    put_char('\n');
+    fprintf(STDOUT, "ERROR: Unknown command < %s >.\n", name);
 }
 
 command command_parser(char * name){
@@ -238,7 +237,7 @@ void write_handler(int argc, char * argv[]) {
 void background_manager(char * name) {
     command fun = command_parser(name + 1);
     if (fun == NULL || (uint64_t) fun == BLOCK_BUILTIN || (uint64_t) fun == UNBLOCK_BUILTIN || (uint64_t) fun == NICE_BUILTIN || (uint64_t) fun == KILL_BUILTIN) {
-        fprintf(STDOUT, "ERROR. Command < %s > not found or not supported for backround.", name + 1);
+        fprintf(STDOUT, "ERROR. Command < %s > not found or not supported for backround.\n", name + 1);
         return;
     }
     bck_fun = fun;
@@ -253,6 +252,7 @@ void background_manager(char * name) {
 }
 
 void background_handler(int argc, char * argv[]) {
+    close(STDIN);
     close(STDOUT);
     exec((uint64_t) bck_fun, bck_argc, bck_argv);
 }
@@ -261,16 +261,16 @@ void block_handler(char * pid) {
     int i;
     for (i = 0; pid[i] != '\0'; i++) {
         if (!is_num(pid[i])) {
-            fprintf(STDOUT, "ERROR: Must specify a PID to block.");
+            fprintf(STDOUT, "ERROR: Must specify a PID to block.\n");
             return;
         }
     }
     if (i > MAX_DIGIT_PID) {
-        fprintf(STDOUT, "ERROR: PID provided is too big.");
+        fprintf(STDOUT, "ERROR: PID provided is too big.\n");
         return;
     }
     if (block(atoi(pid)) == -1) {
-        fprintf(STDOUT, "ERROR: Block failed.");
+        fprintf(STDOUT, "ERROR: Block failed.\n");
     }
 }
 
@@ -278,16 +278,16 @@ void unblock_handler(char * pid) {
     int i;
     for (i = 0; pid[i] != '\0'; i++) {
         if (!is_num(pid[i])) {
-            fprintf(STDOUT, "ERROR: Must specify a PID to unblock.");
+            fprintf(STDOUT, "ERROR: Must specify a PID to unblock.\n");
             return;
         }
     }
     if (i > MAX_DIGIT_PID) {
-        fprintf(STDOUT, "ERROR: PID provided is too big.");
+        fprintf(STDOUT, "ERROR: PID provided is too big.\n");
         return;
     }
     if (unblock(atoi(pid)) == -1) {
-        fprintf(STDOUT, "ERROR: Unblock failed.");
+        fprintf(STDOUT, "ERROR: Unblock failed.\n");
     }
 }
 
@@ -295,16 +295,16 @@ void kill_handler(char * pid) {
     int i;
     for (i = 0; pid[i] != '\0'; i++) {
         if (!is_num(pid[i])) {
-            fprintf(STDOUT, "ERROR: Must specify a PID to kill.");
+            fprintf(STDOUT, "ERROR: Must specify a PID to kill.\n");
             return;
         }
     }
     if (i > MAX_DIGIT_PID) {
-        fprintf(STDOUT, "ERROR: PID provided is too big.");
+        fprintf(STDOUT, "ERROR: PID provided is too big.\n");
         return;
     }
     if (kill(atoi(pid)) == -1) {
-        fprintf(STDOUT, "ERROR: Kill failed.");
+        fprintf(STDOUT, "ERROR: Kill failed.\n");
     }
 }
 
@@ -312,21 +312,21 @@ void nice_handler(char * pid, char * new_priority) {
     int i;
     for (i = 0; pid[i] != '\0'; i++) {
         if (!is_num(pid[i])) {
-            fprintf(STDOUT, "ERROR: Must specify a PID to change its priority.");
+            fprintf(STDOUT, "ERROR: Must specify a PID to change its priority.\n");
             return;
         }
     }
     if (i > MAX_DIGIT_PID) {
-        fprintf(STDOUT, "ERROR: PID provided is too big.");
+        fprintf(STDOUT, "ERROR: PID provided is too big.\n");
         return;
     }
     for (i = 0; new_priority[i] != '\0'; i++) {
         if (!is_num(pid[i])) {
-            fprintf(STDOUT, "ERROR: Must specify a value for the new priority.");
+            fprintf(STDOUT, "ERROR: Must specify a value for the new priority.\n");
             return;
         }
     }
     if (nice(atoi(pid), atoi(new_priority)) == -1) {
-        fprintf(STDOUT, "ERROR: Nice failed.");
+        fprintf(STDOUT, "ERROR: Nice failed.\n");
     }
 }
