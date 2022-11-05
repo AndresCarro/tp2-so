@@ -133,37 +133,86 @@ int is_num(char c) {
 void fprintf(int fd, char * str, ...) {
     va_list vl;
 	int i = 0, j=0;
-    char buff[MAX_BUFFER]={0}, tmp[100];
+    int spaces = 0;
+    char buff[MAX_BUFFER]={0}, tmp[100], fmt[MAX_BUFFER];
     va_start( vl, str ); 
+    strcpy(fmt, str);
 
-    while (str && str[i]) {
-        if(str[i] == '%') {
+    while (str && fmt[i]) {
+        if(fmt[i] == '%') {
             i++;
-            switch (str[i]) {
+            switch (fmt[i]) {
                 case 'c': 
                     buff[j] = (char)va_arg( vl, int );
                     j++;
+                    if (spaces > 0) {
+                        spaces--;
+                    }
+                    while (spaces > 0) {
+                        buff[j] = ' ';
+                        j++;
+                        spaces--;
+                    }
                     break;
                 case 'd': 
                     itoa(va_arg( vl, int ), tmp);
                     strcpy(&buff[j], tmp);
-                    j += strlen(tmp);
+                    int len = strlen(tmp);
+                    j += len;
+                    if (spaces > 0) {
+                        spaces = spaces - len > 0 ? spaces - len : 0;
+                    }
+                    while (spaces > 0) {
+                        buff[j] = ' ';
+                        j++;
+                        spaces--;
+                    }
                     break;
                 case 's': {
-                    char * str = va_arg( vl, char * );
-                    strcpy(&buff[j], str);
-                    j += strlen(str);
+                    char * s = va_arg( vl, char * );
+                    strcpy(&buff[j], s);
+                    int len = strlen(s);
+                    j += len;
+                    if (spaces > 0) {
+                        spaces = spaces - len > 0 ? spaces - len : 0;
+                    }
+                    while (spaces > 0) {
+                        buff[j] = ' ';
+                        j++;
+                        spaces--;
+                    }
                     break;
                 }
                 case 'x': {
                     uint_to_base(va_arg( vl, int ), tmp, 16);
                     strcpy(&buff[j], tmp);
-                    j += strlen(tmp);
+                    int len = strlen(tmp);
+                    j += len;
+                    if (spaces > 0) {
+                        spaces = spaces - len > 0 ? spaces - len : 0;
+                    }
+                    while (spaces > 0) {
+                        buff[j] = ' ';
+                        j++;
+                        spaces--;
+                    }
+                    break;
+                }
+                case '-': {
+                    i++;
+                    int k = 0;
+                    while (is_num(fmt[i])) {
+                        tmp[k++] = fmt[i++];
+                    }
+                    i--;
+                    tmp[k] = 0;
+                    fmt[i--] = '%';
+                    spaces = atoi(tmp);
                     break;
                 }
             }
         } else {
-            buff[j] = str[i];
+            buff[j] = fmt[i];
             j++;
             if (j == MAX_BUFFER) {
                 write(fd, buff, j);

@@ -5,13 +5,13 @@
 
 void pipes(int argc, char * argv[]) {
     PipeInfo * info = pipe_info();
-    fprintf(STDOUT, "PIPE INFORMATION\n");
     if (info == NULL) {
         fprintf(STDOUT, "There are no active pipes.\n");
         return;
     }
+    fprintf(STDOUT, "%-20s%-25s%-18s%-16s\n", "BYTES AVAILABLE", "BYTES LEFT TO READ", "# OPEN FOR READ", "# OPEN FOR WRITE");
     while (info != NULL) {
-        fprintf(STDOUT, "Bytes Available: %d; Bytes Left to Read: %d; # Open for Read: %d; # Open for Write: %d\n", info->available_space, info->left_to_read, info->open_for_read, info->open_for_write);
+        fprintf(STDOUT, "%-20d%-25d%-18d%-16d\n", info->available_space, info->left_to_read, info->open_for_read, info->open_for_write);
         info = info->next;
     }
     while (info != NULL) {
