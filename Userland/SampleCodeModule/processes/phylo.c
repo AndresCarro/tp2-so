@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <processes.h>
 #include <syscalls.h>
 #include <types.h>
@@ -81,7 +83,7 @@ void add_philo() {
     sem_name[0] = philos[philo_count];
     sems[philo_count] = sem_open(sem_name, 0);
 
-    char * name = "Phylosopher X";
+    char name[14] = "Phylosopher X";
     name[12] = philos[philo_count];
     char num[2];
     itoa(philo_count, num);

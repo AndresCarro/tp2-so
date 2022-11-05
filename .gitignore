@@ -138,3 +138,8 @@ Temporary Items
 # User-specific compile script
 compile.sh
 .gdbinit
+
+# PVS-Studio
+PVS-Studio.log
+report.tasks
+strace_out

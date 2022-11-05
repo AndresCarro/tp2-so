@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <syslib.h>
 #include <syscalls.h>
 #include <types.h>
@@ -14,12 +16,22 @@ char ** strtok(char * str, char delim, int * qty) {
         }
     }
     char ** parts = malloc(sizeof(char *) * *qty);
+    if (parts == NULL) {
+        return NULL;
+    }
     char buffer[MAX_BUFFER];
     int i, j, k;
     for (i = 0, j = 0, k = 0; str[j] != '\0'; j++) {
         if (str[j] == delim) {
             buffer[i] = '\0';
             char * new_part = malloc(i + 1);
+            if (new_part == NULL) {
+                while (k > 0) {
+                    free((uint64_t) parts[--k]);
+                }
+                free((uint64_t) parts);
+                return NULL;
+            }
             strcpy(new_part, buffer);
             parts[k++] = new_part;
             i = 0;
@@ -30,6 +42,13 @@ char ** strtok(char * str, char delim, int * qty) {
     }
     buffer[i] = '\0';
     char * new_part = malloc(i + 1);
+    if (new_part == NULL) {
+        while (k > 0) {
+            free((uint64_t) parts[--k]);
+        }
+        free((uint64_t) parts);
+        return NULL;
+    }
     strcpy(new_part, buffer);
     parts[k++] = new_part;
     return parts;
@@ -238,15 +257,13 @@ char get_char() {
 
 int gets(char * s) {
     int i = 0, c = get_char();
-    while (c != '\n' && c != EOF)
-    {
-        s[i] = c;
-        if(s[i] == '\b' && i > 0){
-            i--;
+    while (c != '\n' && c != EOF) {
+        if (i > 0 && s[i] == '\b') {
             put_char(c);
-        }else if(s[i] == '\b' && i == 0 ){
+        } else if(s[i] == '\b' && i == 0 ) {
             
-        }else{
+        } else {
+            s[i] = c;
             i++;
             put_char(c);
         }

@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <keyboard_driver.h>
 #include <pipe.h>
 #include <lib.h>
@@ -109,7 +111,7 @@ Pipe * keyboard_init() {
 }
 
 void keyboard_handler() {
-    if (!read_port(0x64) & 0x01)
+    if (!(read_port(0x64) & 0x01))
         return;
 
     uint16_t scancode = read_port(0x60);
