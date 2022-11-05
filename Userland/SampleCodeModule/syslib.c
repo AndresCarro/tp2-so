@@ -97,6 +97,30 @@ void itoa(int n, char s[]){
      reverse(s);
 }
 
+char ** strtok(char * str, char delim, int * qty) {
+    for (int i = 0; str[i] != '\0'; i++) {
+        if (str[i] == delim) {
+            (*qty)++;
+        }
+    }
+    char ** parts = malloc(sizeof(char *) * *qty);
+    char buffer[MAX_BUFFER];
+    int i, j, k;
+    for (i = 0, j = 0, k = 0; str[j] != '\0'; j++) {
+        if (str[j] == delim) {
+            buffer[i] = '\0';
+            char * new_part = malloc(i + 1);
+            strcpy(new_part, buffer);
+            parts[k++] = new_part;
+            i = 0;
+        } else {
+            buffer[i] = str[j];
+            i++;
+        }
+    }
+    return parts;
+}
+
 static void reverse(char s[]){
      int i, j;
      char c;
