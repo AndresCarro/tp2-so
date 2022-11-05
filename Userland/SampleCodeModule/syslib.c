@@ -1,16 +1,15 @@
 #include <syslib.h>
 #include <stdarg.h>
 
-unsigned int strlen(const char *str){
+unsigned int strlen(const char *str) {
     unsigned int len = 0;
-    while(str[len]!='\0')
-    {
+    while (str[len]!='\0') {
         len++;
     }
     return len;
 }
 
-int is_num(char c){
+int is_num(char c) {
     return c >= '0' && c <= '9';
 }
 
@@ -53,9 +52,9 @@ char get_char(){
 }
 
 //Retorna 1 si lo encuentra, 0 sino
-unsigned int char_belongs(char *s,char c){
-    while(*s != '\0'){
-        if(*s == c){
+unsigned int char_belongs(char * s,char c) {
+    while (*s != '\0') {
+        if (*s == c) {
             return 1;
         }
         s++;

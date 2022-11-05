@@ -1,14 +1,15 @@
-#include <cat.h>
+#include <processes.h>
+#include <types.h>
 
-void cat(){
+void cat(int argc, char * argv[]) {
     int i = 0, c = get_char();
-    while (c != EOF){
-        if(c == '\b' && i > 0){
+    while (c != EOF) {
+        if (c == '\b' && i > 0) {
             i--;
             put_char(c);
-        }else if(c == '\b' && i == 0 ){
-            //no hago nada
-        }else{
+        } else if(c == '\b' && i == 0 ) {
+        
+        } else {
             i++;
             put_char(c);
         }

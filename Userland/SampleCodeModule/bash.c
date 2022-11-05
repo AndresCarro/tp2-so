@@ -27,12 +27,19 @@ void nice_handler(char * pid, char * new_priority);
 void background_manager(char * name);
 void background_handler(int argc, char * argv[]);
 
+void pipe_manager(char ** parts, int part_count, int pipe_position);
+void read_handler(int argc, char * argv[]);
+void write_handler(int argc, char * argv[]);
+
 command bck_fun = NULL;
 int bck_argc = -1;
 char ** bck_argv = NULL;
 
+command pipe_fun[2] = {};
+int pipe_argc[2] = {-1,-1};
+char ** pipe_argv[2] = {};
+
 extern void halt();
-void pipe_panager();
 
 void bash() {
     int i=0;
@@ -54,13 +61,22 @@ int read_input(){
         fprintf(STDOUT, "\nGoodbye :D\n");
         return -1;
     }
-    
+
     int part_count;
     char ** parts = strtok(buffer, ' ', &part_count);
 
     put_char('\n');
     if (char_belongs(buffer, '|')) {
-        pipe_manager();
+        int i;
+        char found = 0;
+        for (i = 0; !found && i < part_count;) {
+            if (strcmp(parts[i], "|") == 0) {
+                found = 1;
+            } else {
+                i++;
+            }
+        }
+        pipe_manager(parts, part_count, i);
     } else if (parts[0][0] == '&') {
         bck_argc = part_count;
         bck_argv = parts;
@@ -104,150 +120,6 @@ int read_input(){
 void unknown_command(char * name) {
     fprintf(STDOUT, "ERROR: Unknown command < %s >.", name);
     put_char('\n');
-}
-
-void test_nice2() {
-    sem_t sem = sem_open("prueba", 0);
-    for (int i = 0; i < 100; i++) {
-		put_char('B');
-		if (i == 50) {
-			sem_post(sem);
-		}
-        halt();
-    }
-}
-
-void test_nice() {
-    char * name = "Test Nice 2";
-    char * argv[] = {name};
-    exec((uint64_t) test_nice2, 1, argv);
-    sem_t sem = sem_open("prueba", 0);
-	sem_wait(sem);
-    while (1) {
-        put_char('C');
-        halt();
-    }
-}
-
-void test_pipe_2() {
-    while (1) {
-        puts("\nPipe 2 dice < ");
-        char c = get_char();
-        put_char(c);
-        puts(">");
-    }
-}
-
-void dup_handler(int argc, char * argv[]) {
-    int k = atoi(argv[1]);
-    close(atoi(argv[2]));
-    dup2(k, STDIN);
-    char * name = "Test Pipe 2";
-    char * argvs[] = {name};
-    exec(test_pipe_2, 1, argvs);
-    close(STDIN);
-}
-
-void test_pipe() {
-    int fds[2];
-    pipe(fds);
-
-    char str[2];
-    char str2[2];
-    itoa(fds[0],str);
-    itoa(fds[1],str2);
-    char * name = "Dup Handler";
-    char * argv[] = {name, str, str2};
-
-    exec((uint64_t) dup_handler, 3, argv);
-    close(fds[0]);
-    dup2(fds[1], STDOUT);
-    while (1) {
-        put_char('B');
-    }
-}
-
-void test_close() {
-    int fds1[2];
-    int fds2[2];
-    pipe(fds1);
-    pipe(fds2);
-    close(fds2[1]);
-    int fds3[2];
-    pipe(fds3);
-    if (fds3[0] == fds2[1]) {
-        puts("FUNCIONA");
-    }
-}
-
-void test_pipe_info() {
-    int fds1[2];
-    int fds2[2];
-    pipe(fds1);
-    pipe(fds2);
-    sys_write(fds1[1], "HOLA HOLA HOLA", 14);
-    close(fds2[0]);
-
-    PipeInfo * info = pipe_info();
-    while (info != NULL) {
-        fprintf(STDOUT, "Avail: %d; Left: %d, Open Read: %d, Open Write: %d\n", info->available_space, info->left_to_read, info->open_for_read, info->open_for_write);
-        info = info->next;
-    }
-}
-
-void test_sem_info_2() {
-    sem_t sem = sem_open("prueba", 0);
-    sem_t sem2 = sem_open("prueba2", 3);
-    sem_post(sem2);
-    
-    SemInfo * info = sem_info();
-    while (info != NULL) {
-        fprintf(STDOUT, "Name: %s, Value: %d, Blocked Processes: %d, Linked Processes: %d\n", info->name, info->value, info->blocked_processes, info->linked_processes);
-        info = info->next;
-    }
-    sem_post(sem);
-}
-
-void test_sem_info() {
-    char * name = "Test Sem Info 2";
-    char * argv[] = {name};
-    exec((uint64_t) test_sem_info_2, 1, argv);
-    sem_t sem = sem_open("prueba", 0);
-	sem_wait(sem);
-}
-
-void test_block2() {
-    while(1) {
-        put_char('B');
-        halt();
-    }
-}
-
-void test_block() {
-    char * name = "Test Block 2";
-    char * argv[] = {name};
-    pid_t pid = exec((uint64_t) test_block2, 1, argv);
-    int i = 0;
-    while (i < 100) {
-        put_char('A');
-        if (i == 10) {
-            block(pid);
-        } else if (i == 20) {
-            unblock(pid);
-        } else if (i == 40) {
-            kill(pid);
-        }
-        halt();
-        i++;
-    }
-}
-
-void medium () {
-    close(STDOUT);
-    char * name = "Primes BCK";
-    char * argv[] = {name};
-    pid_t prime_pid = exec(print_prime, 1, argv);
-    sys_exit(0);
 }
 
 command command_parser(char * name){
@@ -297,89 +169,76 @@ command command_parser(char * name){
     return NULL;
 }
 
-void pipe_manager(){
-    char cmd1[MAX_SIZE_CMD],cmd2[MAX_SIZE_CMD];
-    unsigned int i=0;
-    while(name[i] != '|' && i < MAX_SIZE_CMD){
-        cmd1[i] = name[i];
-        i++;
-    }
-    if(i == MAX_SIZE_CMD){
-        unknown_command(cmd1);
+void pipe_manager(char ** parts, int part_count, int pipe_position) {
+    command fun_1 = command_parser(parts[0]);
+    if (fun_1 == NULL || fun_1 == BLOCK_BUILTIN || fun_1 == UNBLOCK_BUILTIN || fun_1 == NICE_BUILTIN || fun_1 == KILL_BUILTIN) {
+        unknown_command(parts[0]);
         return;
     }
-    cmd1[i] = '\0';
-    i++;//como estoy parado en la '|' paso al siguiente
-    unsigned int j=0;
-    while(name[i] != '\0' && j < MAX_SIZE_CMD){
-        cmd2[j++] = name[i++];
-    }
-    if(j == MAX_SIZE_CMD){
-        unknown_command(cmd2);
+    command fun_2 = command_parser(parts[pipe_position + 1]);
+    if (fun_2 == NULL || fun_2 == BLOCK_BUILTIN || fun_2 == UNBLOCK_BUILTIN || fun_2 == NICE_BUILTIN || fun_2 == KILL_BUILTIN) {
+        unknown_command(parts[pipe_position + 1]);
         return;
     }
-    cmd2[j] = '\0';
-    fun1 = command_line(cmd1);
-    fun2 = command_line(cmd2);
-    if(fun1 == NULL || fun2 == NULL){
+    pipe_fun[0] = fun_1;
+    pipe_fun[1] = fun_2;
+    pipe_argc[0] = pipe_position;
+    pipe_argc[1] = part_count - (pipe_position + 1);
+    pipe_argv[0] = parts;
+    pipe_argv[1] = &parts[pipe_position + 1];
+
+    int fds[2];
+    if (pipe(fds) != 0){
+        fprintf(STDOUT, "ERROR: Pipe creation failed\n");
         return;
     }
-    int fds1[2];
-    if(pipe(fds1) != 0){
-        puts("Error in pipe creation\n");
-        return;
-    }
-    char * name1 = "write_handler";
-    char fd_w[2];
+   
     char fd_r[2];
-    itoa(fds1[1],fd_w);
-    itoa(fds1[0],fd_r);
-    char * argv[] = {name1, fd_r,fd_w};
-    //pipefd[0] refers to the read end  of  the  pipe. pipefd[1] refers to the write end of the pipe
-    pid_t pid1 = exec((uint64_t) write_handler, 3 ,argv);
+    char fd_w[2];
+    itoa(fds[0], fd_r);
+    itoa(fds[1], fd_w);
+
+    char * name_r = "Read Handler";
+    char * name_w = "Write Handler";
+    char * argv_r[] = {name_r, fd_r, fd_w};
+    char * argv_w[] = {name_w, fd_r, fd_w};
+
+    pid_t pid_r = exec((uint64_t) read_handler, 3 ,argv_r);
+    pid_t pid_w = exec((uint64_t) write_handler, 3, argv_w);    
     
-    char * name2 = "read_handler";
-    char * argv2[] = {name2, fd_r,fd_w};
-    pid_t pid2 = exec((uint64_t) read_handler, 3 ,argv2);
-    close(fds1[0]);
-    close(fds1[1]);
-    waitpid(pid1);
-    waitpid(pid2);
+    close(fds[0]);
+    close(fds[1]);
+    waitpid(pid_r);
+    waitpid(pid_w);
     
-    fun1 = NULL;
-    fun2 = NULL;
+    pipe_fun[0] = NULL;
+    pipe_fun[1] = NULL;
+    pipe_argc[0] = -1;
+    pipe_argc[1] = -1;
+    pipe_argv[0] = NULL;
+    pipe_argv[1] = NULL;
 }
 
-void write_handler(int argc,char* argv[]){
-    if(argc <= 1){
-        return;
-    }
-    close(atoi(argv[1]));
-    dup2(atoi(argv[2]),STDOUT);
-    char *name = "fun1";
-    char *args[] = {name};
-    pid_t pid = exec((uint64_t) fun1,1,args);
-    close(STDOUT);
+void read_handler(int argc, char * argv[]) {
+    close(atoi(argv[2]));
+    dup2(atoi(argv[1]), STDIN);
+    pid_t pid = exec((uint64_t) pipe_fun[1], pipe_argc[1], pipe_argv[1]);
+    close(STDIN);
     waitpid(pid);
 }
 
-void read_handler(int argc,char* argv[]){
-    if(argc <= 1){
-        return;
-    }
-    close(atoi(argv[2]));
-    dup2(atoi(argv[1]),STDIN);
-    char *name = "fun2";
-    char *args[] = {name};
-    pid_t pid = exec((uint64_t) fun2,1,args);
-    close(STDIN);
+void write_handler(int argc, char * argv[]) {
+    close(atoi(argv[1]));
+    dup2(atoi(argv[2]), STDOUT);
+    pid_t pid = exec((uint64_t) pipe_fun[0], pipe_argc[0], pipe_argv[0]);
+    close(STDOUT);
     waitpid(pid);
 }
 
 void background_manager(char * name) {
     command fun = command_parser(name + 1);
     if (fun == NULL || fun == BLOCK_BUILTIN || fun == UNBLOCK_BUILTIN || fun == NICE_BUILTIN || fun == KILL_BUILTIN) {
-        fprintf(STDOUT, "ERROR. Command not found or not supported for backround.");
+        fprintf(STDOUT, "ERROR. Command < %s > not found or not supported for backround.", name + 1);
         return;
     }
     bck_fun = fun;
