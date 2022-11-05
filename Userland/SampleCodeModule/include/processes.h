@@ -22,6 +22,9 @@ void help();
 void get_time();
 void fibonacci_numbs();
 void wc();
+void cat();
+void filter();
+
 
 void excepDivZero();
 void excepInvalidOpcode();
