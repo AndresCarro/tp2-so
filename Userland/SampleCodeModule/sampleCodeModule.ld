@@ -17,5 +17,5 @@ SECTIONS
 		bss = .;
 		*(.bss*)
 	}
-	endOfBinary = .;
+	end_of_binary = .;
 }
