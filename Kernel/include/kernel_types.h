@@ -75,7 +75,7 @@ typedef struct {
     uint64_t rsp;
     uint64_t stack_base;
     BlockedQueueADT blocked_queue;
-    fd_t file_desciptors[MAX_FDS];
+    fd_t file_descriptors[MAX_FDS];
     unsigned int last_fd;
     unsigned int argc;
     char ** argv;

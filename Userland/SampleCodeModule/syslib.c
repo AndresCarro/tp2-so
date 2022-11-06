@@ -192,9 +192,15 @@ void fprintf(int fd, char * str, ...) {
                     break;
                 case 's': {
                     char * s = va_arg( vl, char * );
-                    strcpy(&buff[j], s);
+                    for (int r = 0; s[r] != 0; r++) {
+                        buff[j] = s[r];
+                        j++;
+                        if (j == MAX_BUFFER) {
+                            write(fd, buff, j);
+                            j = 0;
+                        }
+                    }
                     int len = strlen(s);
-                    j += len;
                     if (spaces > 0) {
                         spaces = MAX(spaces - len, 0);
                     }

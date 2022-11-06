@@ -17,11 +17,11 @@ void test_mm(int argc, char * argv[]) {
 	uint64_t max_memory;
 
 	if (argc != 2) {
-        fprintf(STDOUT, "ERROR: Invalid amount of arguments provided.");
+        fprintf(STDOUT, "ERROR: Invalid amount of arguments provided.\n");
         return;
     }
 	if ((max_memory = atoi(argv[1])) <= 0) {
-        fprintf(STDOUT, "ERROR: Invalid argument.");
+        fprintf(STDOUT, "ERROR: Invalid argument.\n");
         return;
     }
 

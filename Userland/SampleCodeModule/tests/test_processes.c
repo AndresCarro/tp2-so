@@ -21,12 +21,12 @@ void test_processes(int argc, char * argv[]) {
     char * arg[] = {name};
 
     if (argc != 2) {
-        fprintf(STDOUT, "ERROR: Invalid amount of arguments provided.");
+        fprintf(STDOUT, "ERROR: Invalid amount of arguments provided.\n");
         return;
     }
 
     if ((max_processes = atoi(argv[1])) <= 0) {
-        fprintf(STDOUT, "ERROR: Invalid argument.");
+        fprintf(STDOUT, "ERROR: Invalid argument.\n");
         return;
     }
 

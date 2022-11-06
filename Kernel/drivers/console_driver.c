@@ -76,7 +76,7 @@ void print_base(uint64_t value, uint32_t base) {
 	print(buffer);
 }
 
-void clear() {
+void clear_console() {
 	for (int i = 0; i < HEIGHT * WIDTH; i++){
 		video[i * 2] = ' ';
 		video[i * 2 + 1] = DEFAULT_FORMAT;

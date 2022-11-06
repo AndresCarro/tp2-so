@@ -13,6 +13,7 @@
 #define UNBLOCK_BUILTIN 2
 #define NICE_BUILTIN 3
 #define KILL_BUILTIN 4
+#define CLEAR_BUILTIN 5
 
 static char buffer[MAX_BUFFER];
 
@@ -109,6 +110,8 @@ int read_input(){
             } else {
                 kill_handler(parts[1]);
             }
+        } else if ((uint64_t) fun == CLEAR_BUILTIN) {
+            clear();
         } else {
             pid_t pid = exec((uint64_t) fun, part_count, parts);
             waitpid(pid);
@@ -159,16 +162,20 @@ command command_parser(char * name){
         return (command) cat;
     } else if (strcmp(name, "filter") == 0) {
         return (command) filter;
-    }  else if (strcmp(name, "phylo") == 0) {
+    } else if (strcmp(name, "phylo") == 0) {
         return (command) phylo;
+    } else if (strcmp(name, "turtle") == 0) {
+        return (command) turtle;
     } else if (strcmp(name, "block") == 0) {
         return (command) BLOCK_BUILTIN;
     } else if (strcmp(name, "unblock") == 0) {
         return (command) UNBLOCK_BUILTIN;
     } else if (strcmp(name, "nice") == 0) {
         return (command) NICE_BUILTIN;
-    } else if (contains_string(name, "kill") == 0) {
+    } else if (strcmp(name, "kill") == 0) {
         return (command) KILL_BUILTIN;
+    } else if (strcmp(name, "clear") == 0) {
+        return (command) CLEAR_BUILTIN;
     }
     return NULL;
 }

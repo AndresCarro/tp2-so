@@ -16,7 +16,7 @@ void print_dec(uint64_t value);
 void print_hex(uint64_t value);
 void print_bin(uint64_t value);
 void print_base(uint64_t value, uint32_t base);
-void clear();
+void clear_console();
 void scroll_up();
 
 #endif

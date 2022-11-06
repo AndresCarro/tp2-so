@@ -65,7 +65,7 @@ void test_synchro(int argc, char *argv[]) {
     uint64_t pids[2 * TOTAL_PAIR_PROCESSES];
 
     if (argc != 3) {
-        fprintf(STDOUT, "ERROR: Invalid amount of arguments provided.");
+        fprintf(STDOUT, "ERROR: Invalid amount of arguments provided.\n");
         return;
     } 
 

@@ -26,4 +26,5 @@ void filter(int argc, char * argv[]) {
         }
         c = get_char();
     }
+    put_char('\n');
 }

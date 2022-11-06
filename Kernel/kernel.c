@@ -44,7 +44,7 @@ void * initialize_kernel_binary() {
 int main() {
 	_cli();
 
-    clear();
+    clear_console();
 	load_idt();
 	
 	memory_manager_start((void *) 0xF00000, 0x2000000 - 0xF00000);

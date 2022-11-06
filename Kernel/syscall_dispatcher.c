@@ -48,6 +48,8 @@ static PCBInfo * sys_get_process_info();
 
 static void sys_time(date_t * s);
 
+static void sys_clear();
+
 uint64_t syscall_dispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rax){
     switch(rax) {
         case 0:
@@ -125,6 +127,9 @@ uint64_t syscall_dispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t r
         case 24:
             sys_time((date_t *) rdi);
             break;
+        case 25:
+            sys_clear();
+            break;
         default:
             break;
     }
@@ -133,7 +138,7 @@ uint64_t syscall_dispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t r
 
 static uint64_t sys_read(unsigned int fd, char * output, uint64_t count) {
     PCB * pcb = get_process(get_current_pid());
-    fd_t * table = pcb->file_desciptors;
+    fd_t * table = pcb->file_descriptors;
     unsigned int last_fd = pcb->last_fd;
 
     if (fd >= last_fd || table[fd].mode != READ) {
@@ -144,7 +149,7 @@ static uint64_t sys_read(unsigned int fd, char * output, uint64_t count) {
 
 static int sys_write(unsigned fd, char * buffer, uint64_t count) {
     PCB * pcb = get_process(get_current_pid());
-    fd_t * table = pcb->file_desciptors;
+    fd_t * table = pcb->file_descriptors;
     unsigned int last_fd = pcb->last_fd;
 
     if (fd >= last_fd || table[fd].mode != WRITE) {
@@ -205,6 +210,10 @@ static int sys_unblock_process(pid_t pid) {
 }
 
 static int sys_kill(pid_t pid) {
+    if (pid <= 0) {
+        return -1;
+    }
+
     int x = prepare_process_for_work(pid);
     if (x == -1) {
         return -1;
@@ -244,7 +253,7 @@ static int sys_sem_post(sem_t sem) {
 
 static int sys_pipe(int fds[]) {
     PCB * pcb = get_process(get_current_pid());
-    fd_t * table = pcb->file_desciptors;
+    fd_t * table = pcb->file_descriptors;
     unsigned int last_fd = pcb->last_fd;
 
     int available = 0;
@@ -290,7 +299,7 @@ static int sys_pipe(int fds[]) {
 
 static void sys_dup2(int old, int new) {
     PCB * pcb = get_process(get_current_pid());
-    fd_t * table = pcb->file_desciptors;
+    fd_t * table = pcb->file_descriptors;
     unsigned int last_fd = pcb->last_fd;
 
     if (old >= last_fd || new >= last_fd || table[old].mode == CLOSED) {
@@ -302,7 +311,7 @@ static void sys_dup2(int old, int new) {
 
 static void sys_close(int fd) {
     PCB * pcb = get_process(get_current_pid());
-    fd_t * table = pcb->file_desciptors;
+    fd_t * table = pcb->file_descriptors;
     unsigned int last_fd = pcb->last_fd;
 
     if (fd >= last_fd || table[fd].mode == CLOSED) {
@@ -337,11 +346,15 @@ static PCBInfo * sys_get_process_info() {
     return process_info();
 }
 
-static void sys_time(date_t * s){
+static void sys_time(date_t * s) {
     s->day = local_day();
     s->month = local_month();
     s->year = local_year();
     s->hours = local_hours();
     s->minutes = get_minutes();
     s->seconds = get_seconds();
+}
+
+static void sys_clear() {
+    clear_console();
 }

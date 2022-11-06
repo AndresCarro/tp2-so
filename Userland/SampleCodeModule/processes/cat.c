@@ -18,4 +18,5 @@ void cat(int argc, char * argv[]) {
         }
         c = get_char();
     }
+    put_char('\n');
 }

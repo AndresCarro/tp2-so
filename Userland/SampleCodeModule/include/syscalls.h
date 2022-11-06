@@ -28,5 +28,6 @@ extern PipeInfo * pipe_info();
 extern SemInfo * sem_info();
 extern PCBInfo * process_info();
 extern void time(date_t * s);
+extern void clear();
 
 #endif

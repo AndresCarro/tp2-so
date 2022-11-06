@@ -23,6 +23,7 @@ global pipe_info
 global sem_info
 global process_info
 global time
+global clear
 
 section .text
 
@@ -246,6 +247,15 @@ time:
     enter 0,0
     
     mov rax, 24
+    int 80h
+
+    leave
+    ret
+
+clear:
+    enter 0, 0
+
+    mov rax, 25
     int 80h
 
     leave

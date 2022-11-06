@@ -31,10 +31,10 @@ void scheduler_init(Pipe * stdin) {
     dummy_process_pid = create_process((uint64_t) dummy_process, 1, argv);
     
     active->process.last_fd = 2;
-    active->process.file_desciptors[0].mode = READ;
-    active->process.file_desciptors[0].pipe = stdin;
-    active->process.file_desciptors[1].mode = WRITE;
-    active->process.file_desciptors[1].pipe = NULL;
+    active->process.file_descriptors[0].mode = READ;
+    active->process.file_descriptors[0].pipe = stdin;
+    active->process.file_descriptors[1].mode = WRITE;
+    active->process.file_descriptors[1].pipe = NULL;
 
     active->process.status = BLOCKED;
     process_ready_count--;
@@ -154,7 +154,7 @@ pid_t create_process(uint64_t rip, int argc, char * argv[]) {
     new_process->process.argv = copy_argv(argc, argv);
     if (active != NULL) {
         new_process->process.last_fd = active->process.last_fd;
-        copy_fd_table(active->process.file_desciptors, new_process->process.file_desciptors, new_process->process.last_fd);
+        copy_fd_table(active->process.file_descriptors, new_process->process.file_descriptors, new_process->process.last_fd);
     }
     
     uint64_t rsp = (uint64_t) memory_manager_alloc(4*1024);
@@ -362,7 +362,7 @@ PCBInfo * process_info() {
         new_info->priority = current->process.priority;
         new_info->status = current->process.status;
         new_info->rsp = current->process.rsp;
-        new_info->rbp = current->process.rsp;
+        new_info->rbp = current->process.stack_base;
         new_info->next = info;
         info = new_info;
         current = current->next;
@@ -375,7 +375,7 @@ PCBInfo * process_info() {
         new_info->priority = current->process.priority;
         new_info->status = current->process.status;
         new_info->rsp = current->process.rsp;
-        new_info->rbp = current->process.rsp;
+        new_info->rbp = current->process.stack_base;
         new_info->next = info;
         info = new_info;
         current = current->next;
