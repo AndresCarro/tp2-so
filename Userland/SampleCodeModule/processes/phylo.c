@@ -15,7 +15,8 @@
 int state[MAX_PHILOS];
 int philos[MAX_PHILOS] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'};
 pid_t pids[MAX_PHILOS];
- 
+
+char terminating = 0; 
 int philo_count = 0;
 
 sem_t sems[MAX_PHILOS];
@@ -66,7 +67,7 @@ void put_fork(int philo) {
  
     try_eat(get_left(philo));
     try_eat(get_right(philo));
- }
+}
 
 void * philosopher(int argc, char * argv[]) {
     int i = atoi(argv[1]);
@@ -96,16 +97,23 @@ void add_philo() {
 void delete_philo() {
     philo_count--;
     sem_close(sems[philo_count]);
+    if (!terminating && (state[philo_count] == EATING || state[philo_count] == THINKING)) {
+        try_eat(get_left(philo_count));
+        try_eat(get_right(philo_count));
+    }
     kill(pids[philo_count]);
 }
 
 void terminate() {
+    terminating = 1;
     while (philo_count > 0) {
         delete_philo();
     }
 }
 
 void phylo(int argc, char * argv[]) {
+    fprintf(STDOUT, "Press 'a' to add a phylosopher.\nPress 'r' to remove a phylosopher.\nPress 'q' to exit.\n");
+
     for (int i = 0; i < INITIAL_PHILOS; i++) {
         add_philo();
     }

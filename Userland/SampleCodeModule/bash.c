@@ -50,7 +50,7 @@ void bash() {
     }
 }
 
-int read_input(){
+int read_input() {
     int size_read = gets(buffer);
 
     if (char_belongs(buffer, '|') && char_belongs(buffer, '&')) {

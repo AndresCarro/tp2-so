@@ -17,7 +17,7 @@ static uint64_t sys_read(unsigned int fd, char * output, uint64_t count);
 static int sys_write(unsigned fd, char * buffer, uint64_t count);
 
 static pid_t sys_exec(uint64_t program, unsigned int argc, char * argv[]);
-static void sys_exit(int retValue, char autokill);
+static void sys_exit(int return_value, char autokill);
 
 static pid_t sys_getpid();
 static pid_t sys_waitpid(pid_t pid);
@@ -202,10 +202,18 @@ static int sys_yield_process() {
 }
 
 static int sys_block_process(pid_t pid) {
+    if (pid <= 0) {
+        return -1;
+    }
+
     return block_process(pid);
 }
 
 static int sys_unblock_process(pid_t pid) {
+    if (pid <= 0) {
+        return -1;
+    }
+
     return unblock_process(pid);
 }
 
@@ -224,6 +232,10 @@ static int sys_kill(pid_t pid) {
 }
 
 static int sys_nice(pid_t pid, int new_priority) {
+    if (pid <= 0) {
+        return -1;
+    }
+
     return change_priority(pid, new_priority);
 }
 

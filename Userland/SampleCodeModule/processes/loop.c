@@ -9,7 +9,7 @@ void loop(int argc, char * argv[]) {
     pid_t pid = getpid();
     int i = 0;
     while (1) {
-        if (i == WAIT_TIME) {
+        if (i == WAIT_TIME * 100) {
             fprintf(STDOUT, "Hello there! I'm %d :)\n",pid);
             i = 0;
         }
