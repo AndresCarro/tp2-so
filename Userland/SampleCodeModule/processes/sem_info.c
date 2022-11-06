@@ -7,7 +7,6 @@
 
 void sem(int argc, char * argv[]) {
     SemInfo * info = sem_info();
-    fprintf(STDOUT, "SEMAPHORES INFORMATION\n");
     if (info == NULL) {
         fprintf(STDOUT, "There are no active semaphores.\n");
         return;

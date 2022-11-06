@@ -5,6 +5,8 @@
 #include <types.h>
 #include <stdarg.h>
 
+#define MAX(x,y) ((x) > (y) ? (x) : (y))
+
 static void reverse(char s[]);
 void strcpy(char * dest, char * src);
 
@@ -153,14 +155,15 @@ void fprintf(int fd, char * str, ...) {
     va_list vl;
 	int i = 0, j=0;
     int spaces = 0;
-    char buff[MAX_BUFFER]={0}, tmp[100], fmt[MAX_BUFFER];
+    char buff[MAX_BUFFER]={0}, tmp[100];
     va_start( vl, str ); 
-    strcpy(fmt, str);
 
-    while (fmt[i]) {
-        if(fmt[i] == '%') {
-            i++;
-            switch (fmt[i]) {
+    while (str && str[i]) {
+        if(str[i] == '%'  || spaces > 0) {
+            if (spaces == 0) {
+                i++;
+            }
+            switch (str[i]) {
                 case 'c': 
                     buff[j] = (char)va_arg( vl, int );
                     j++;
@@ -179,7 +182,7 @@ void fprintf(int fd, char * str, ...) {
                     int len = strlen(tmp);
                     j += len;
                     if (spaces > 0) {
-                        spaces = spaces - len > 0 ? spaces - len : 0;
+                        spaces = MAX(spaces - len, 0);
                     }
                     while (spaces > 0) {
                         buff[j] = ' ';
@@ -193,7 +196,7 @@ void fprintf(int fd, char * str, ...) {
                     int len = strlen(s);
                     j += len;
                     if (spaces > 0) {
-                        spaces = spaces - len > 0 ? spaces - len : 0;
+                        spaces = MAX(spaces - len, 0);
                     }
                     while (spaces > 0) {
                         buff[j] = ' ';
@@ -208,7 +211,7 @@ void fprintf(int fd, char * str, ...) {
                     int len = strlen(tmp);
                     j += len;
                     if (spaces > 0) {
-                        spaces = spaces - len > 0 ? spaces - len : 0;
+                        spaces = MAX(spaces - len, 0);
                     }
                     while (spaces > 0) {
                         buff[j] = ' ';
@@ -220,18 +223,17 @@ void fprintf(int fd, char * str, ...) {
                 case '-': {
                     i++;
                     int k = 0;
-                    while (is_num(fmt[i])) {
-                        tmp[k++] = fmt[i++];
+                    while (is_num(str[i])) {
+                        tmp[k++] = str[i++];
                     }
                     i--;
                     tmp[k] = 0;
-                    fmt[i--] = '%';
                     spaces = atoi(tmp);
                     break;
                 }
             }
         } else {
-            buff[j] = fmt[i];
+            buff[j] = str[i];
             j++;
             if (j == MAX_BUFFER) {
                 write(fd, buff, j);
@@ -258,12 +260,13 @@ char get_char() {
 int gets(char * s) {
     int i = 0, c = get_char();
     while (c != '\n' && c != EOF) {
+        s[i] = c;
         if (i > 0 && s[i] == '\b') {
+            i--;
             put_char(c);
-        } else if(s[i] == '\b' && i == 0 ) {
-            
+        } else if (s[i] == '\b') {
+
         } else {
-            s[i] = c;
             i++;
             put_char(c);
         }
