@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <pipe.h>
 #include <blocked_queue.h>
 #include <memory_manager.h>
@@ -63,7 +65,11 @@ void pipe_close(Pipe * pipe, char close_write_end) {
         if (previous == NULL) {
             pipes = pipes->next;
         } else {
-            previous->next = current->next;
+            if (current == NULL) {
+                previous->next = NULL;
+            } else {
+                previous->next = current->next;
+            }
         }
         memory_manager_free(current);
         memory_manager_free(pipe);

@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <scheduler.h>
 #include <interrupts.h>
 #include <pipe.h>
@@ -15,7 +17,7 @@ extern void _int20h();
 int process_count = -1;
 unsigned int process_ready_count = 0;
 unsigned char something_running = 0;
-pid_t dummy_process_pid = NULL;
+pid_t dummy_process_pid;
 
 void dummy_process() {
     while (1) {
@@ -219,7 +221,7 @@ void next_to_run() {
             previous = current;
             current = current->next;
         }
-        if (previous != NULL) {
+        if (previous != NULL && current != NULL) {
             previous->next = current->next;
             current->next = active;
             active = current;
@@ -338,7 +340,7 @@ int terminate_process(int return_value, char autokill) {
 }
 
 int change_priority(pid_t pid, int priority_value) {
-    if (priority_value < 0 && priority_value > 8) {
+    if (priority_value < 0 || priority_value > 8) {
         return -1;
     }
     PCB * process = get_process(pid);

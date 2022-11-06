@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #ifdef BUDDY_MM
 
 #include <memory_manager.h>
@@ -40,7 +42,7 @@ void memory_manager_start(void * start_address, uint64_t size_heap) {
     memory_start = start_address;
     buddies = start_address;
     size_t buddie_memory_size = sizeof(Buddy) * MAX_NODES;
-    heap_start = memory_start + buddie_memory_size;
+    heap_start = (void *) ((uint64_t) memory_start + buddie_memory_size);
 
     total_memory = HEAP_MEMORY_SIZE;
     used_memory = 0;
@@ -103,7 +105,7 @@ void update_parents_status(unsigned int index, unsigned int operation) {
 }
 
 void set_status(unsigned int index, unsigned int new_status) {
-    if (index < 0 || index >= MAX_NODES){
+    if (index >= MAX_NODES) {
         return;
     }
 
@@ -116,9 +118,9 @@ void * obtain_address(unsigned int index, unsigned int level) {
     void * return_address = heap_start;
 
     uint64_t buddy_diff_index = index - get_first_index_for_level(level);
-    uint64_t buddy_size = (1 << level);
+    uint64_t buddy_size = ((uint64_t) 1 << level);
 
-    return_address += (buddy_diff_index * buddy_size);
+    return_address = (void *) ((uint64_t) return_address + (buddy_diff_index * buddy_size));
 
     return return_address;
 }
@@ -168,7 +170,7 @@ int search_node(int index, int * level, void * ptr) {
 
 
 int get_max_posible_level(void * ptr) {
-    int relative_address = ptr - heap_start;
+    int relative_address = (uint64_t) ptr - (uint64_t) heap_start;
     int level = MAX_LEVEL;
     int pow_of_two = 1 << MAX_LEVEL;
 
@@ -180,12 +182,12 @@ int get_max_posible_level(void * ptr) {
 }
 
 int get_start_searching_index(void * ptr, int max_level) {
-    int relative_address = ptr - heap_start;
+    int relative_address = (uint64_t) ptr - (uint64_t) heap_start;
     return get_first_index_for_level(max_level) + (relative_address / (1 << max_level));
 }
 
 void memory_manager_free(void * ptr) {
-    if (ptr == NULL || ptr < heap_start || ptr >= (heap_start + HEAP_MEMORY_SIZE)) {
+    if (ptr == NULL || (uint64_t) ptr < (uint64_t) heap_start || (uint64_t) ptr >= ((uint64_t) heap_start + HEAP_MEMORY_SIZE)) {
         return;
     }
 
@@ -200,11 +202,14 @@ void memory_manager_free(void * ptr) {
     set_status(index, FREE);
 
     memeory_fragments--;
-    used_memory -= (1 << level);
+    used_memory -= ((uint64_t) 1 << level);
 }
 
 MemInfo * mem_info() {
     MemInfo * info = memory_manager_alloc(sizeof(MemInfo));
+    if (info == NULL) {
+        return NULL;
+    }
     info->mem_algorithm = strcpy(MEM_ALGORITHM);
     info->memory_total = total_memory;
     info->memory_occupied = used_memory;

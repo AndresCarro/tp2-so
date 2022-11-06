@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <lib.h>
 #include <stddef.h>
 #include <memory_manager.h>
@@ -11,6 +13,28 @@ void * memset(void * destination, int32_t c, uint64_t length) {
 		dst[length] = chr;
 
 	return destination; 
+}
+
+// Retreived from 
+void * memmove(void * dest, void * src, unsigned int n) {
+    char * p_dest = (char *) dest;
+    char * p_src = (char *) src;
+    
+    char * tmp  = (char *) memory_manager_alloc(n);
+    if (NULL == tmp) {
+        return NULL;
+    } else {
+        unsigned int i = 0;
+
+        for (i = 0; i < n; ++i) {
+            *(tmp + i) = *(p_src + i);
+        }
+        for (i = 0; i < n; ++i) {
+            *(p_dest + i) = *(tmp + i);
+        }
+        memory_manager_free(tmp);
+    }
+    return dest;
 }
 
 // Retreived from init

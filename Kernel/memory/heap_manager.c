@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #ifndef BUDDY_MM
 
 #include <memory_manager.h>
@@ -68,7 +70,7 @@ void memory_manager_free(void * ptr) {
     if (ptr == NULL) {
         return;
     }
-    MemoryNodeADT current = ptr - sizeof(MemoryNodeCDT);
+    MemoryNodeADT current = (void *) ((uint64_t) ptr - sizeof(MemoryNodeCDT));
     if (current->previous == NULL) {
         current->leftover += current->size;
         used_memory -= current->size;
@@ -87,6 +89,9 @@ void memory_manager_free(void * ptr) {
 
 MemInfo * mem_info() {
     MemInfo * info = memory_manager_alloc(sizeof(MemInfo));
+    if (info == NULL) {
+        return NULL;
+    }
     info->mem_algorithm = strcpy(MEM_ALGORITHM);
     info->memory_total = total_memory;
     info->memory_occupied = used_memory;

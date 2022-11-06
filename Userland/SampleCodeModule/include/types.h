@@ -20,7 +20,7 @@ typedef uint64_t sem_t;
 typedef struct {
     uint8_t day, month, year;
     uint8_t hours, minutes, seconds;
-} time_t;
+} date_t;
 
 typedef struct pcbinfo {
     char * name;

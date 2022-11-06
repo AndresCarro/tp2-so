@@ -27,6 +27,6 @@ extern MemInfo * mem_info();
 extern PipeInfo * pipe_info();
 extern SemInfo * sem_info();
 extern PCBInfo * process_info();
-extern void time(time_t * s);
+extern void time(date_t * s);
 
 #endif

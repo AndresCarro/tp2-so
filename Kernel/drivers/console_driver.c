@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <console_driver.h>
 #include <lib.h>
 
@@ -5,9 +7,9 @@
 #define HEIGHT 25
 
 static uint32_t uint_to_base(uint64_t value, char * buffer, uint32_t base);
-static char buffer[64] = {'0'};
-static uint8_t *const video = (uint8_t *) 0xB8000;
-static uint8_t *current_video = (uint8_t *) 0xB8000;
+static char buffer[64] = {};
+static uint8_t * const video = (uint8_t *) 0xB8000;
+static uint8_t * current_video = (uint8_t *) 0xB8000;
 
 void delete_char() {
 	if (current_video - 2 >= video) {
@@ -113,7 +115,7 @@ static uint32_t uint_to_base(uint64_t value, char * buffer, uint32_t base) {
 }
 
 void scroll_up(){
-    memcpy(video, video + WIDTH * 2, WIDTH * (HEIGHT - 1) * 2);
+    memmove(video, video + WIDTH * 2, WIDTH * (HEIGHT - 1) * 2);
 	current_video -= WIDTH * 2;
 	for (int i = 0; i < WIDTH * 2; i += 2) {
 		current_video[i] = ' ';

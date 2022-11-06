@@ -22,5 +22,12 @@ clean:
 	cd Image; make clean
 	cd Kernel; make clean
 	cd Userland; make clean
+	rm -rf cppcheck.txt PVS-Studio.log report.tasks strace_out
+
+static_analysis:
+	cppcheck --quiet --enable=all --force --inconclusive . 2> cppcheck.txt
+	pvs-studio-analyzer trace -- make
+	pvs-studio-analyzer analyze
+	plog-converter -a '64:1,2,3;GA:1,2,3;OP:1,2,3' -t tasklist -o report.tasks PVS-Studio.log
 
 .PHONY: bootloader image collections kernel userland all clean

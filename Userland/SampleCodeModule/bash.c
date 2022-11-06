@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <bash.h>
 #include <types.h>
 #include <processes.h>
@@ -38,8 +40,6 @@ char ** bck_argv = NULL;
 command pipe_fun[2] = {};
 int pipe_argc[2] = {-1,-1};
 char ** pipe_argv[2] = {};
-
-// extern void halt();
 
 void bash() {
     int i=0;
@@ -114,6 +114,11 @@ int read_input(){
             waitpid(pid);
         }
     }
+
+    for (int i = 0; i < part_count; i++) {
+        free((uint64_t) parts[i]);
+    }
+    free((uint64_t) parts);
     return size_read;
 }
 

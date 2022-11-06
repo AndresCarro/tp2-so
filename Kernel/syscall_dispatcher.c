@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <syscall_dispatcher.h>
 #include <defs.h>
 #include <stdint.h>
@@ -44,7 +46,7 @@ static PipeInfo * sys_get_pipe_info();
 static SemInfo * sys_get_sem_info();
 static PCBInfo * sys_get_process_info();
 
-static void sys_time(time_t * s);
+static void sys_time(date_t * s);
 
 uint64_t syscall_dispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t rax){
     switch(rax) {
@@ -121,7 +123,7 @@ uint64_t syscall_dispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t r
             return (uint64_t) sys_get_process_info();
             break;
         case 24:
-            sys_time((time_t *) rdi);
+            sys_time((date_t *) rdi);
             break;
         default:
             break;
@@ -335,7 +337,7 @@ static PCBInfo * sys_get_process_info() {
     return process_info();
 }
 
-static void sys_time(time_t * s){
+static void sys_time(date_t * s){
     s->day = local_day();
     s->month = local_month();
     s->year = local_year();
