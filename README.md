@@ -1,4 +1,4 @@
-# turtleOS
+# 🐢 turtleOS
 
 turtleOS is a small operating system developed as from Pure64.
 
@@ -226,7 +226,7 @@ Program that prints to standard output the amount of lines which it read from st
 
 The program ends when it reads `EOF (-1)`. Said character can be entered on the keyboard with the shortcut `Ctrl + D`.
 
-# *Piping*
+# Piping
 
 All of the above programs which are not built-in can be connected using the following syntax: `<program_1> | <program_2>`.
 
@@ -248,7 +248,7 @@ The return value will be available in RAX.
 
 | System Call | RAX | RDI | RSI | RDX |
 | --- | --- | --- | --- | --- |
-| read | 0x00 | unsigned int fd | char * buf | uint64_t count |
+| read | 0x00 | `unsigned int fd` | `char * buf` | `uint64_t count` |
 | write | 0x01 | `unsigned int fd` | `char * buf` | `uint64_t count` |
 | exec | 0x02 | `uint64_t program` | `unsigned int argc` | `char * argv[]` |
 | exit | 0x03 | `int ret_value` | `char autokill` |  |
