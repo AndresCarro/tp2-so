@@ -143,3 +143,4 @@ compile.sh
 PVS-Studio.log
 report.tasks
 strace_out
+cppcheck.txt

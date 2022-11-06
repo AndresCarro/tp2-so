@@ -15,6 +15,7 @@ void * memset(void * destination, int32_t c, uint64_t length) {
 	return destination; 
 }
 
+// Retreived from 
 void * memmove(void * dest, void * src, unsigned int n) {
     char * p_dest = (char *) dest;
     char * p_src = (char *) src;

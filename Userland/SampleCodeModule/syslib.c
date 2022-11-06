@@ -157,7 +157,7 @@ void fprintf(int fd, char * str, ...) {
     va_start( vl, str ); 
     strcpy(fmt, str);
 
-    while (str && fmt[i]) {
+    while (fmt[i]) {
         if(fmt[i] == '%') {
             i++;
             switch (fmt[i]) {
@@ -323,10 +323,8 @@ void strcpy(char * dest, char * src) {
 
 static void reverse(char s[]){
      int i, j;
-     char c;
- 
      for (i = 0, j = strlen(s)-1; i<j; i++, j--) {
-         c = s[i];
+         char c = s[i];
          s[i] = s[j];
          s[j] = c;
      }

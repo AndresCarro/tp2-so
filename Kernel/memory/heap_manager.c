@@ -70,7 +70,7 @@ void memory_manager_free(void * ptr) {
     if (ptr == NULL) {
         return;
     }
-    MemoryNodeADT current = ptr - sizeof(MemoryNodeCDT);
+    MemoryNodeADT current = (void *) ((uint64_t) ptr - sizeof(MemoryNodeCDT));
     if (current->previous == NULL) {
         current->leftover += current->size;
         used_memory -= current->size;

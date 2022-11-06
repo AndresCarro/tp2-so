@@ -110,9 +110,8 @@ void phylo(int argc, char * argv[]) {
         add_philo();
     }
 
-    char c;
     while (1) {
-        c = get_char();
+        char c = get_char();
         if (c == 'a' || c == 'A') {
             if (philo_count < MAX_PHILOS) {
                 add_philo();
