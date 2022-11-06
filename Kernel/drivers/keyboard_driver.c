@@ -51,7 +51,7 @@ static char caps_keys[] = {
                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 // Numpad keys
                      };
 
-static char shift_caps_keys[] = {
+static char shift_keys[] = {
                         0, // Error
                         27, // Escape
                         '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+',
@@ -75,7 +75,7 @@ static char shift_caps_keys[] = {
                      };
 
 
-static char shift_keys[] = {
+static char shift_caps_keys[] = {
                         0, // Error
                         27, // Escape
                         '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+',
