@@ -8,9 +8,9 @@
 #define MAX_PHILOS 10
 #define INITIAL_PHILOS 3
 
-#define EATING 0
-#define HUNGRY 1
-#define THINKING 2
+#define THINKING 0
+#define EATING 1
+#define HUNGRY 2
  
 int state[MAX_PHILOS];
 int philos[MAX_PHILOS] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'};
@@ -51,6 +51,7 @@ void try_eat(int philo) {
         put_char('\n');
  
         sem_post(sems[philo]);
+        state[philo] = THINKING;
     }
 }
  
@@ -62,9 +63,7 @@ void take_fork(int philo) {
     wait(1);
 }
  
-void put_fork(int philo) { 
-    state[philo] = THINKING;
- 
+void put_fork(int philo) {  
     try_eat(get_left(philo));
     try_eat(get_right(philo));
 }
@@ -127,7 +126,11 @@ void phylo(int argc, char * argv[]) {
                 fprintf(STDOUT, "ERROR: Can't add more phylosophers.\n");
             }
         } else if (c == 'r' || c == 'R') {
-            delete_philo();
+            if (philo_count > 1) {
+                delete_philo();
+            } else {
+                fprintf(STDOUT, "ERROR: Can't remove more phylosophers.\n");
+            }
         } else if (c == 'q' || c == 'Q' || c == -1) {
             terminate();
             return;
